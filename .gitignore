@@ -1,0 +1,7 @@
+/__pycache__
+/datasets
+/speaker_encoder/data
+/speaker_encoder/__pycache__
+/synthesizer/data
+/synthesizer/__pycache__
+/vocoder/__pycache__
