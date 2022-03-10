@@ -7,6 +7,8 @@
 # eer relative to the test eer. 
 
 from pathlib import Path
+from torch.utils.data import DataLoader
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
@@ -132,6 +134,20 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
   # With the results, write to file. 
   _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map) 
 
+# Evaluate a model, given the location of the model, the dataloader,
+# a queue object to insert the results into, and the key to use for
+# said resuts. Intended to be run as a subprocess alongside parallel
+# tests. 
+def _test_model_worker(model_location, dataloader, queue, queue_key="eer"):
+  # TODO: Execute the test
+  eer = 0
+
+  # Return the result in the queue.
+  ret_dict = queue.get()
+  ret_dict[queue_key] = eer
+  queue.put(ret_dict)
+
+# Writes results of batch testing to file. 
 def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map):
   try:
     results_folder_contents = os.listdir(test_report_dir)
@@ -194,7 +210,7 @@ def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_re
   # Gather points. Every point should be indexed by step. 
   indices = []
   test_eers = []
-  train_accs = []
+  train_eers = []
 
   # Each item should be structured as such:
   # 99.69913960 - encoder_0.028125_0.472423_0211800.pt
@@ -203,18 +219,18 @@ def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_re
     try:
       step = None
       test_eer = None
-      train_acc = None
+      train_eer = None
 
       string_split_apos = string.split(" - ")
       test_eer = float(string_split_apos[0].strip())
 
       result_string_split = string_split_apos[1].split("_")
-      step = int(result_string_split[5].split(".h")[0].strip())
-      train_acc = float(result_string_split[4].strip())*100
+      step = int(result_string_split[3].split(".p")[0].strip())
+      train_eer = float(result_string_split[1].strip())*100
       
       indices.append(step)
       test_eers.append(test_eer)
-      train_accs.append(train_acc)
+      train_eers.append(train_eer)
     except Exception as e:
       print("[WARNING] Encountered an exception while parsing string " + str(string) + ":")
       print(e)
@@ -223,9 +239,9 @@ def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_re
   # them.   
   data= []
   for i in range(0, len(indices)):
-    data.append([indices[i], test_eers[i], train_accs[i]])
+    data.append([indices[i], test_eers[i], train_eers[i]])
 
-  df = pd.DataFrame(data, columns = ["step", "test_eer", "train_acc"])
+  df = pd.DataFrame(data, columns = ["step", "test_eer", "train_eer"])
 
   # Sort the dataframe by step first so lines are drawn properly.
   df.sort_values("step", axis=0, inplace=True)
@@ -235,10 +251,10 @@ def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_re
 
   # With our dataframe, we can finally graph the history. 
   plt.plot(df["test_eer"])
-  plt.plot(df["train_acc"])
+  plt.plot(df["train_eer"])
   plt.ylabel("Accuracy")
   plt.xlabel("Step")
-  plt.legend(["test_eer", "train_acc"], loc="upper left")
+  plt.legend(["test_eer", "train_eer"], loc="upper left")
 
   # Save the graph. 
   try:
