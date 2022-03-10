@@ -1,5 +1,6 @@
 /__pycache__
 /datasets
+/saved_models
 /speaker_encoder/data
 /speaker_encoder/__pycache__
 /synthesizer/data

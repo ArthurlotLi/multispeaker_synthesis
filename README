@@ -50,3 +50,11 @@ steps to allow your local environment to function correctly.
 1. Install everything required by MultispeakerSynthesis. Run:
 
    pip install -r requirements.txt 
+
+2. Install FFmpeg. The pip installation won't set the cli tool, so you
+   need to install from here:
+
+   https://ffmpeg.org/
+
+   Make sure to add the directory with ffmpeg.exe to the system PATH,
+   then restart your command line/terminal session.

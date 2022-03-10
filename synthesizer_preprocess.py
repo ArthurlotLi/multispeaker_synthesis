@@ -11,9 +11,3 @@
 #
 # LibriSpeech: https://www.openslr.org/12/
 # VCTK: https://datashare.ed.ac.uk/handle/10283/2950
-
-class SynthesizerPreprocess:
-  pass
-
-if __name__ == "__main__":
-  pass

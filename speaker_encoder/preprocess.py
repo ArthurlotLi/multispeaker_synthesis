@@ -27,7 +27,9 @@ _AUDIO_EXTENSIONS = {"wav", "flac", "m4a", "mp3"}
 # Dataset metadata file prefix, to be followed by dataset name + ".txt".
 _dataset_log_prefix = "Log_"
 _dataset_log_spacer = "==================================================================="
-_preprocess_speaker_dirs_multiprocessing = 4
+
+# Batch size. Recommend highest possible without torching your CPU.
+_preprocess_speaker_dirs_multiprocessing = 10
 
 # Helper class for logging dataset metadata into a text file. This
 # provides info like when the dataset was created, the parameter
@@ -150,13 +152,13 @@ def _preprocess_speaker(speaker_dir: Path, datasets_root: Path, out_dir: Path, s
       # We expect a waveform (npy array)
       wav = speaker_encoder.audio_utils.preprocess_audio(in_fpath)
       if len(wav) == 0:
-        print("[WARNING] Preprocess - Preprocessed audio empty for file: '%s'," % in_fpath)
+        #print("[WARNING] Preprocess - Preprocessed audio empty for file: '%s'," % in_fpath)
         continue
 
       # Create the mel spectogram. If it's too short, remove it. 
       frames = speaker_encoder.audio_utils.wav_to_mel_spectogram(wav)
       if len(frames) < partials_n_frames:
-        print("[WARNING] Preprocess - Mel spectogram too short. Extracted from file: '%s'," % in_fpath)
+        #print("[WARNING] Preprocess - Mel spectogram too short. Extracted from file: '%s'," % in_fpath)
         continue
 
       # All done; write the spectogram accordingly. 
@@ -180,6 +182,7 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
   # Yay for multiprocessing - batch size of 4. 
   with Pool(_preprocess_speaker_dirs_multiprocessing) as pool:
     tasks = pool.imap(work_fn, speaker_dirs)
+    # Progress bar.
     for sample_durs in tqdm(tasks, dataset_name, len(speaker_dirs), unit="speakers"):
       for sample_dur in sample_durs:
         logger.add_sample(duration=sample_dur)
@@ -227,9 +230,12 @@ def preprocess_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing = Fal
                       nationality.lower() in anglophone_nationalites]
   print("[INFO] Preprocess - VoxCeleb1 using samples from %d presumed anglophone speakers out of %d speakers." %
         (len(keep_speaker_ids), len(nationalities)))
+
+  print(keep_speaker_ids)
   
   # Now let's grab the speaker directories for these speakers.
-  speaker_dirs = dataset_root.joinpath("wav").glob("*")
+  # We expect the path to be VoxCeelb/train/wav
+  speaker_dirs = dataset_root.joinpath("train","wav").glob("*")
   speaker_dirs = [speaker_dir for speaker_dir in speaker_dirs if
                   speaker_dir.name in keep_speaker_ids]
   print("[INFO] Preprocess - VoxCeleb1 found %d anglophone speakers on disk, with %d missing (Some missing is expected)." %
@@ -240,12 +246,91 @@ def preprocess_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing = Fal
 
 # VoxCeleb2 is as easy as LibriSpeech - kick off processing for all
 # speakers. 
-def preprocess_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing = False):
+def preprocess_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing=False):
   dataset_name = "VoxCeleb2" # This is expected.
   dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
   if not dataset_root:
     return # We've already logged the error.
   
-  # Go through all the speakers.
-  speaker_dirs = list(dataset_root.joinpath("dev", "aac").glob("*"))
+  # Go through all the speakers. We expect the path to be VoxCeleb2/train/aac
+  speaker_dirs = list(dataset_root.joinpath("train",  "aac").glob("*"))
   _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+# Preprocessing Test Datasets
+# -> All of the above functions generate the training datasets from
+#    the LibriSpeech, VoxCeleb1 and VoxCeleb2 datasets. These last
+#    few functions were added to preprocess testing datasets. 
+
+# Preprocess Librispeech Test. 
+def preprocess_test_librispeech(datasets_root: Path, out_dir: Path, skip_existing = False):
+  for dataset_name in librispeech_datasets["test"]["other"]:
+    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+      return # We've already logged the error.
+    
+    # Go through all the speakers. 
+    speaker_dirs = list(dataset_root.glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+# Preprocess VoxCeleb1 Test. We'll go through the same process with
+# excluding presumed non anglophone speakers with the same csv file.
+def preprocess_test_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing = False):
+  dataset_name = "VoxCeleb1" # This is expected.
+  dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+  if not dataset_root:
+    return # We've already logged the error. 
+
+  # Filter out the speakers by nationality via meta file. We expect
+  # this to be here and will die if it isn't. 
+  metadata = None
+  try:
+    with dataset_root.joinpath("vox1_meta.csv").open("r") as metafile:
+      # The metadata file has only one column with everything squished
+      # inside. 
+      metadata = [line.split("\t") for line in metafile][1:]
+  except:
+    print("[ERROR] Preprocess - Unable to find vox1_meta.csv. Has it been placed in the VoxCeleb1 folder?")
+    return
+  
+  # Work through the metadata to get the speakers we want. 
+  nationalities = {line[0]: line[3] for line in metadata}
+  keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
+                      nationality.lower() in anglophone_nationalites]
+  print("[INFO] Preprocess - VoxCeleb1 using samples from %d presumed anglophone speakers out of %d speakers." %
+        (len(keep_speaker_ids), len(nationalities)))
+
+  print(keep_speaker_ids)
+  
+  # Now let's grab the speaker directories for these speakers.
+  # We expect the path to be VoxCeleb1/test
+  speaker_dirs = dataset_root.joinpath("test").glob("*")
+  speaker_dirs = [speaker_dir for speaker_dir in speaker_dirs if
+                  speaker_dir.name in keep_speaker_ids]
+  print("[INFO] Preprocess - VoxCeleb1 found %d anglophone speakers on disk, with %d missing (Some missing is expected)." %
+        (len(speaker_dirs), len(keep_speaker_ids) - len(speaker_dirs)))
+  
+  # And finally, let's kick the preprocessing off for this dataset.
+  _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+def preprocess_test_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing = False):
+  dataset_name = "VoxCeleb2" # This is expected.
+  dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+  if not dataset_root:
+    return # We've already logged the error.
+  
+  # Go through all the speakers. We expect the path to be VoxCeleb2/test
+  speaker_dirs = list(dataset_root.joinpath("test").glob("*"))
+  _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+# Preprocessing Dev Datasets
+
+# For good measure, allow preprocessing of the dev dataset of librispeech. 
+def preprocess_dev_librispeech(datasets_root: Path, out_dir: Path, skip_existing = False):
+  for dataset_name in librispeech_datasets["dev"]["other"]:
+    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+      return # We've already logged the error.
+    
+    # Go through all the speakers. 
+    speaker_dirs = list(dataset_root.glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)

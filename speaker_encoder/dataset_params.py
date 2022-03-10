@@ -27,16 +27,19 @@ librispeech_datasets = {
 
 # Voxceleb stuff. We're using these exclusively for the speaker
 # encoder. 
+# NOTE: This is not used, and instead hard-coded for simplicity.
+"""
 voxceleb_datasets = {
     "voxceleb1" : {
-        "train": ["VoxCeleb1/wav"],
-        "test": ["VoxCeleb1/test_wav"]
+        "train": ["VoxCeleb1/train"],
+        "test": ["VoxCeleb1/test"]
     },
     "voxceleb2" : {
-        "train": ["VoxCeleb2/dev/aac"],
-        "test": ["VoxCeleb2/test_wav"]
+        "train": ["VoxCeleb2/train/aac"],
+        "test": ["VoxCeleb2/test"]
     }
 }
+"""
 
 # Libritts - a multispeaker speaker corpus derived from the
 # original Librispeech dataset. 24kHZ sampling rate, speech

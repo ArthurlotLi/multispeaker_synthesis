@@ -1,3 +1,6 @@
 # Speaker Encoder
 webrtcvad # audio_utils
 librosa # audio_utils
+ffmpeg 
+umap-learn
+visdom
