@@ -28,8 +28,12 @@ import os
 
 _model_suffix = ".pt"
 _test_batch_size = 512 # Load the entire dataset at once. 
+_file_name_prefix = "chain_test_results_"
+_file_name_suffix = ".txt"
 
 # A set of colors to use. Subjective.
+colormap = np.random.rand(128,3)
+"""
 colormap = np.array([
   [76, 255, 0],
   [0, 127, 70],
@@ -45,6 +49,7 @@ colormap = np.array([
   [0, 0, 0],
   [183, 183, 183],
 ], dtype=np.float) / 255
+"""
 
 # As cuda operations are async, synchronize for correct profiling.
 def sync(device: torch.device):
@@ -66,6 +71,19 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path, test_report_dir: Pa
   chain_test_results = {}
   chain_test_results_acc_map = {}
 
+  results_folder_contents = os.listdir(test_report_dir)
+  result_index = 0
+  for file in results_folder_contents:
+    if file.endswith(".txt"):
+      file_number_str = file.replace(_file_name_prefix, "").replace(_file_name_suffix, "")
+      file_number = -1
+      try:
+        file_number = int(file_number_str)
+        if(file_number >= result_index):
+          result_index = file_number + 1
+      except:
+        pass # Ignore any files that aren't of the correct format. 
+
   # Load the test dataset. We provide this to every subprocess. 
   # TODO: Implement
   #test_dataset = _load_test_set(clean_data_root)
@@ -73,13 +91,19 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path, test_report_dir: Pa
   # Gathers all of the models in the directory. 
   model_minibatch = []
   files = os.listdir(model_batch_dir)
+  files_models = []
 
+  # Throw all applicable files into a list.
   for i in range(0, len(files)):
     filename = files[i]
 
-    # Given a file, append it to the minibatch to be processed.
     if filename.endswith(_model_suffix):
-      model_minibatch.append(filename)
+      files_models.append(filename)
+
+  # Work through each model. 
+  for model in files_models:
+    # Given a file, append it to the minibatch to be processed.
+    model_minibatch.append(model)
 
     # If the minibatch has been filed OR there are no other files left.
     if (len(model_minibatch) == minibatch_size) or (i == len(files)-1):
@@ -106,7 +130,8 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path, test_report_dir: Pa
             clean_data_root,
             queue,
             use_cpu,
-            "eer" + str(i)
+            "eer" + str(i),
+            result_index
           ))
           minibatch_processes[i] = (p, file)
         
@@ -170,7 +195,7 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path, test_report_dir: Pa
   chain_test_results_acc_map = dict(sorted(chain_test_results_acc_map.items(), key=lambda item: item[0]))
 
   # With the results, write to file. 
-  _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map) 
+  _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index) 
 
 # Loads the test set into one combined .npy file.
 # TODO: Implement more efficient loading. 
@@ -190,7 +215,7 @@ def _load_test_set(clean_data_root):
 # a queue object to insert the results into, and the key to use for
 # said resuts. Intended to be run as a subprocess alongside parallel
 # tests. 
-def _test_model_worker(model_location, test_report_dir, clean_data_root, queue, use_cpu, queue_key="eer"):
+def _test_model_worker(model_location, test_report_dir, clean_data_root, queue, use_cpu, queue_key, result_index):
   # Create the dataset + dataloader objects. 
   dataset = SpeakerVerificationDatasetSequential(clean_data_root)
   loader = SpeakerVerificationDataLoaderSequential(
@@ -249,12 +274,12 @@ def _test_model_worker(model_location, test_report_dir, clean_data_root, queue, 
     else:
       total_eer = eer
     
-    #print("[DEBUG] Train - Drawing and saving projections (step %d)" % step)
-    # Filename is umap_<step>.png.
-    #projection_fpath = test_report_dir / f"umap_{str(model_location)}.png"
+    print("[DEBUG] Test - Drawing and saving projections.")
+    filename = _file_name_prefix + str(result_index) + "_" + os.path.basename(str(model_location)).split(".p")[0] + ".png"
+    projection_fpath = test_report_dir / filename
     # Visualize the embeddings.
-    #embeds = embeds.detach().cpu().numpy()
-    #_draw_projections(embeds, utterances_per_speaker, step, projection_fpath)
+    embeds = embeds.detach().cpu().numpy()
+    _draw_projections(embeds, utterances_per_speaker, step, projection_fpath)
 
   # Return the result in the queue.
   ret_dict = queue.get()
@@ -262,7 +287,15 @@ def _test_model_worker(model_location, test_report_dir, clean_data_root, queue, 
   queue.put(ret_dict)
 
 def _draw_projections(embeds, utterances_per_speaker, step, out_fpath):
-  max_speakers = min(max_speakers, len(colormap))
+  graph_width_inches = 13
+  graph_height_inches = 7
+
+  title = "Multispeaker Synthesis - UMAP Projection"
+  fig = plt.figure(1)
+  fig.suptitle(title)
+  fig.set_size_inches(graph_width_inches,graph_height_inches)
+
+  max_speakers = len(colormap)
   embeds = embeds[:max_speakers * utterances_per_speaker]
 
   n_speakers = len(embeds) // utterances_per_speaker
@@ -273,29 +306,17 @@ def _draw_projections(embeds, utterances_per_speaker, step, out_fpath):
   projected = reducer.fit_transform(embeds)
   plt.scatter(projected[:, 0], projected[:, 1], c=colors)
   plt.gca().set_aspect("equal", "datalim")
-  plt.title("UMAP projection (step %d)" % step)
   if out_fpath is not None:
     plt.savefig(out_fpath)
   plt.clf()
 
-# Writes results of batch testing to file. 
-def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map):
-  #try:
-  results_folder_contents = os.listdir(test_report_dir)
-  result_index = 0
-  file_name_prefix = "chain_test_results_"
-  file_name_suffix = ".txt"
-  for file in results_folder_contents:
-    file_number_str = file.replace(file_name_prefix, "").replace(file_name_suffix, "")
-    file_number = -1
-    try:
-      file_number = int(file_number_str)
-      if(file_number >= result_index):
-        result_index = file_number + 1
-    except:
-      print("[WARN] Unexpected file in results directory. Ignoring...")
+  plt.close("all")
 
-  filename = test_report_dir.joinpath(file_name_prefix + str(result_index) + file_name_suffix)
+# Writes results of batch testing to file. 
+def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index):
+  #try:
+
+  filename = test_report_dir.joinpath(_file_name_prefix + str(result_index) + _file_name_suffix)
   print("\n[INFO] Chain test complete. Writing results to file '%s'..." % filename)
   f = open(filename, "w")
 
