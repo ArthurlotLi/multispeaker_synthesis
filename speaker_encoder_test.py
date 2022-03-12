@@ -7,4 +7,33 @@
 # By default expects the data to be in ./datasets/SV2TTS/encoder_test.
 #
 # Usage:
-# python speaker_encoder_test.py model1
+# python speaker_encoder_test.py ./saved_models/model1
+
+
+from utils.argutils import print_args
+from speaker_encoder.test import batch_test
+
+from pathlib import Path
+import argparse
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser(
+    description="Tests the speaker encoder.",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter
+  )
+
+  parser.add_argument("model_batch_dir", type=str, help= \
+    "Location for all of the models to batch test.")
+  parser.add_argument("-d","--clean_data_root", type=Path, default="./datasets/SV2TTS/encoder_test", help= \
+    "Path to the output directory of encoder_preprocess.py.")
+  parser.add_argument("-t", "--test_report_dir", type=Path, default="./evaluation_results", help=\
+    "Path to where the test report should be placed.")
+  parser.add_argument("-m", "--minibatch_size", type=int, default=1, help= \
+    "Number of models to test at once. Defaults to 1.")
+  parser.add_argument("-c", "--use_cpu", action="store_true", help= \
+    "Force usage of the CPU - will try to use GPU otherwise.")
+  args = parser.parse_args()
+
+  # Run the training
+  print_args(args, parser)
+  batch_test(**vars(args))

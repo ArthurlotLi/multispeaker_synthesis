@@ -30,7 +30,9 @@
 #  -d = List of datasets to preprocess (only train sets will be used) - defaults to librispeech_other,voxceleb1,voxceleb2.
 #  -s = Whether to skip existing output files. 
 
-from speaker_encoder.preprocess import preprocess_librispeech, preprocess_test_librispeech, preprocess_test_voxceleb1, preprocess_voxceleb1, preprocess_voxceleb2
+from speaker_encoder.preprocess import preprocess_librispeech,preprocess_voxceleb1, preprocess_voxceleb2
+from speaker_encoder.preprocess import preprocess_test_librispeech, preprocess_test_voxceleb1, preprocess_test_voxceleb2 
+from speaker_encoder.preprocess import preprocess_dev_librispeech
 from utils.argutils import print_args
 
 from pathlib import Path

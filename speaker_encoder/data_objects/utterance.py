@@ -26,3 +26,10 @@ class Utterance:
       start = np.random.randint(0, frames.shape[0] - n_frames)
     end = start + n_frames
     return frames[start:end], (start, end)
+  
+  # For sequential applications, always start at 0. 
+  def sequential_partial(self, n_frames):
+    frames = self.get_frames()
+    start = 0
+    end = start + n_frames
+    return frames[start:end], (start, end)

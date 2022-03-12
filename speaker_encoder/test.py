@@ -5,17 +5,46 @@
 # test data folder, given a directory of model(s). Saves a test
 # report and a conclusive training history graph showing the train
 # eer relative to the test eer. 
+#
+# Works best if the test dataset is relatively small, as we load
+# the entire dataset into memory for each subprocess rather than
+# loading it batch by batch like during training. 
+
+from speaker_encoder.data_objects.speaker_verification_dataset import SpeakerVerificationDataLoaderSequential, SpeakerVerificationDatasetSequential
+from speaker_encoder.model import SpeakerEncoder
+#from utils.profiler import Profiler
 
 from pathlib import Path
-from torch.utils.data import DataLoader
+from speaker_encoder.model_params import *
+from tqdm import tqdm
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import umap.umap_ as umap
 import torch
 import multiprocessing
 import os
 
 _model_suffix = ".pt"
+_test_batch_size = 512 # Load the entire dataset at once. 
+
+# A set of colors to use. Subjective.
+colormap = np.array([
+  [76, 255, 0],
+  [0, 127, 70],
+  [255, 0, 0],
+  [255, 217, 38],
+  [0, 135, 255],
+  [165, 0, 165],
+  [255, 167, 255],
+  [0, 255, 255],
+  [255, 96, 38],
+  [142, 76, 0],
+  [33, 0, 127],
+  [0, 0, 0],
+  [183, 183, 183],
+], dtype=np.float) / 255
 
 # As cuda operations are async, synchronize for correct profiling.
 def sync(device: torch.device):
@@ -30,14 +59,16 @@ def sync(device: torch.device):
 # Expects each model file to be labeled as follows:
 #   encoder_<eer>_<loss>_<step>.pt
 #   Ex) encoder_0.028125_0.472423_0211800.pt
-def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int):
+def batch_test(model_batch_dir: Path, clean_data_root: Path, test_report_dir: Path, minibatch_size: int, use_cpu: bool):
   print("[INFO] Test - Initializing batch test.")
 
   filename_uid = 0
   chain_test_results = {}
   chain_test_results_acc_map = {}
 
-  # TODO: Create the dataloader now. 
+  # Load the test dataset. We provide this to every subprocess. 
+  # TODO: Implement
+  #test_dataset = _load_test_set(clean_data_root)
 
   # Gathers all of the models in the directory. 
   model_minibatch = []
@@ -54,7 +85,7 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
     if (len(model_minibatch) == minibatch_size) or (i == len(files)-1):
       # Process the minibatch. 
       try:
-        print("[INFO] Test - Processing minibatch: " + str(minibatch))
+        print("[INFO] Test - Processing minibatch: " + str(model_minibatch))
         # Dict object for the results of all tests. 
         ret_dict = {}
         queue = multiprocessing.Queue()
@@ -65,17 +96,24 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
 
         # Create a process for each model. 
         for j in range(0, len(model_minibatch)):
-          file = minibatch[j]
+          file = model_minibatch[j]
           print("[INFO] Test - Creating new subprocess for model: %s." % file)
 
           # Execute the test as a separate process.
-          # TODO: p = multiprocessing.Process()
+          p = multiprocessing.Process(target=_test_model_worker, args=(
+            model_batch_dir + "/" + file,
+            test_report_dir,
+            clean_data_root,
+            queue,
+            use_cpu,
+            "eer" + str(i)
+          ))
           minibatch_processes[i] = (p, file)
         
         # After processes have been created, kick them off in parallel.
         for item in minibatch_processes:
           tuple = minibatch_processes[item]
-          print("\n\n[INFO] Executing new process for model %s.\n" % tuple[1])
+          print("\n\n[INFO] Test - Executing new process for model %s.\n" % tuple[1])
           tuple[0].start()
         
         # Now wait for all processes to finish. 
@@ -86,7 +124,7 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
         # All processes have now completed. Append the results to our
         # results dicts. 
         ret_dict_result = queue.get()
-        print("\n[INFO] Processes complete; results:")
+        print("\n[INFO] Test - Processes complete; results:")
         print(ret_dict_result) 
         print("")
 
@@ -122,7 +160,7 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
         print("\n")
 
       # Clear the minibatch regardless of success.   
-      minibatch = []
+      model_minibatch = []
   
   if(filename_uid == 0):
     print("[WARNING] No files with suffix %s found at location \"%s\". Please specify another location with an argument or move/copy the model(s) accordingly." % (_model_suffix,model_batch_dir))
@@ -134,50 +172,144 @@ def batch_test(model_batch_dir: Path, test_report_dir: Path, minibatch_size: int
   # With the results, write to file. 
   _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map) 
 
+# Loads the test set into one combined .npy file.
+# TODO: Implement more efficient loading. 
+""" 
+def _load_test_set(clean_data_root):
+  test_set = None
+  try:
+    print("[DEBUG] Attempting to load test dataset at %s." % clean_data_root)
+    test_set = 
+  except Exception as e:
+    print("[ERROR] Failed to read test set at %s. Exception:" % clean_data_root)
+    print(e)
+  return test_set
+"""
+
 # Evaluate a model, given the location of the model, the dataloader,
 # a queue object to insert the results into, and the key to use for
 # said resuts. Intended to be run as a subprocess alongside parallel
 # tests. 
-def _test_model_worker(model_location, dataloader, queue, queue_key="eer"):
-  # TODO: Execute the test
-  eer = 0
+def _test_model_worker(model_location, test_report_dir, clean_data_root, queue, use_cpu, queue_key="eer"):
+  # Create the dataset + dataloader objects. 
+  dataset = SpeakerVerificationDatasetSequential(clean_data_root)
+  loader = SpeakerVerificationDataLoaderSequential(
+    dataset,
+    _test_batch_size,
+    utterances_per_speaker,
+    num_workers = data_loader_num_workers,
+  )
+
+  # Setup the device on which to run forward pass + loss calculations.
+  # Note that these CAN be different devices, as the forward pass is
+  # faster on the GPU whereas the loss (depending on what
+  # hyperparameters you chose) is often faster on the CPU.
+  device = None
+  if use_cpu:
+    device = torch.device("cpu")
+  else:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  loss_device = device
+
+  # Load the model with the device.
+  model = SpeakerEncoder(device, loss_device)
+  checkpoint = torch.load(model_location, device)
+  model.load_state_dict(checkpoint["model_state"], strict=False)
+
+  # Always set the model into evaluation/inference mode.
+  model.eval()
+
+  print("[INFO] Test - Loaded speaker encoder \"%s\" model trained to step %d." % (model_location, checkpoint["step"]))
+
+  total_eer = 0
+
+  # Execute evaluation. 
+
+  #for step, speaker_batch in enumerate(loader, 1):
+  for step, speaker_batch in tqdm(enumerate(loader), desc="Testing Progress", total=len(loader)):
+    # Forward propagation. 
+
+    # Send the next batch to the device and propagate them through 
+    # the network.
+    inputs = torch.from_numpy(speaker_batch.data).to(device)
+    sync(device)
+
+    # Get the embedding vector output by the model. 
+    embeds = model(inputs)
+    sync(device)
+
+    # Calculate the loss with the loss device (Our CPU, not GPU) and
+    # apply it. 
+    embeds_loss = embeds.view((speakers_per_batch, utterances_per_speaker, -1)).to(loss_device)
+    loss, eer = model.loss(embeds_loss)
+    sync(loss_device)
+
+    if total_eer != 0:
+      total_eer = (total_eer + eer)/2
+    else:
+      total_eer = eer
+    
+    #print("[DEBUG] Train - Drawing and saving projections (step %d)" % step)
+    # Filename is umap_<step>.png.
+    #projection_fpath = test_report_dir / f"umap_{str(model_location)}.png"
+    # Visualize the embeddings.
+    #embeds = embeds.detach().cpu().numpy()
+    #_draw_projections(embeds, utterances_per_speaker, step, projection_fpath)
 
   # Return the result in the queue.
   ret_dict = queue.get()
-  ret_dict[queue_key] = eer
+  ret_dict[queue_key] = total_eer
   queue.put(ret_dict)
+
+def _draw_projections(embeds, utterances_per_speaker, step, out_fpath):
+  max_speakers = min(max_speakers, len(colormap))
+  embeds = embeds[:max_speakers * utterances_per_speaker]
+
+  n_speakers = len(embeds) // utterances_per_speaker
+  ground_truth = np.repeat(np.arange(n_speakers), utterances_per_speaker)
+  colors = [colormap[i] for i in ground_truth]
+
+  reducer = umap.UMAP()
+  projected = reducer.fit_transform(embeds)
+  plt.scatter(projected[:, 0], projected[:, 1], c=colors)
+  plt.gca().set_aspect("equal", "datalim")
+  plt.title("UMAP projection (step %d)" % step)
+  if out_fpath is not None:
+    plt.savefig(out_fpath)
+  plt.clf()
 
 # Writes results of batch testing to file. 
 def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map):
-  try:
-    results_folder_contents = os.listdir(test_report_dir)
-    result_index = 0
-    file_name_prefix = "chain_test_results_"
-    file_name_suffix = ".txt"
-    for file in results_folder_contents:
-      file_number_str = file.replace(file_name_prefix, "").replace(file_name_suffix, "")
-      file_number = -1
-      try:
-        file_number = int(file_number_str)
-        if(file_number >= result_index):
-          result_index = file_number + 1
-      except:
-        print("[WARN] Unexpected file in results directory. Ignoring...")
+  #try:
+  results_folder_contents = os.listdir(test_report_dir)
+  result_index = 0
+  file_name_prefix = "chain_test_results_"
+  file_name_suffix = ".txt"
+  for file in results_folder_contents:
+    file_number_str = file.replace(file_name_prefix, "").replace(file_name_suffix, "")
+    file_number = -1
+    try:
+      file_number = int(file_number_str)
+      if(file_number >= result_index):
+        result_index = file_number + 1
+    except:
+      print("[WARN] Unexpected file in results directory. Ignoring...")
 
-    filename = results_folder_contents + "/"+file_name_prefix+str(result_index)+file_name_suffix
-    f = open(filename, "w")
-    print("\n[INFO] Chain test complete. Writing results to file '"+filename+"'...")
+  filename = test_report_dir.joinpath(file_name_prefix + str(result_index) + file_name_suffix)
+  print("\n[INFO] Chain test complete. Writing results to file '%s'..." % filename)
+  f = open(filename, "w")
 
-    f.write("=================================\nSORTED Chain Test Results\n=================================\n\n")
-    # Write results of each model, sorted.
-    for key in chain_test_results_acc_map:
-      f.write(chain_test_results[chain_test_results_acc_map[key]])
+  f.write("=================================\nSORTED Chain Test Results\n=================================\n\n")
+  # Write results of each model, sorted.
+  for key in chain_test_results_acc_map:
+    f.write(chain_test_results[chain_test_results_acc_map[key]])
 
-    f.close()
-  except:
-    print("[ERROR] Failed to write results to file!")
+  f.close()
+  #except Exception as e:
+    #print("[ERROR] Failed to write results to file! Exception:")
+    #print(e)
   
-  _graph_train_test_history(test_report_dir, chain_test_results, chain_test_results_acc_map, filename)
+  _graph_train_test_history(chain_test_results, chain_test_results_acc_map, filename)
 
   print("[INFO] Write complete. Have a good night...")
 
@@ -192,7 +324,7 @@ def _write_batch_results(test_report_dir, chain_test_results, chain_test_results
 # Expects full location of the file that has been written -
 # the suffix will be stripped but otherwise the graph will be
 # written to file with that exact name. 
-def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_results_acc_map, filename):
+def _graph_train_test_history(chain_test_results, chain_test_results_acc_map, filename):
   print("[INFO] Generating test acc history graph.")
 
   # TODO: This function needs to be revamped to match the new format. NO VAL ACC! 
@@ -200,7 +332,7 @@ def _graph_train_test_history(test_report_dir, chain_test_results, chain_test_re
   graph_width_inches = 13
   graph_height_inches = 7
   
-  graph_location = filename.replace(".txt", "")
+  graph_location = str(filename).replace(".txt", "")
 
   title = "Multispeaker Synthesis - Train + Test History"
   fig = plt.figure(1)
