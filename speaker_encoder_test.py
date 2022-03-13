@@ -28,10 +28,10 @@ if __name__ == "__main__":
     "Path to the output directory of encoder_preprocess.py.")
   parser.add_argument("-t", "--test_report_dir", type=Path, default="./evaluation_results", help=\
     "Path to where the test report should be placed.")
-  parser.add_argument("-m", "--minibatch_size", type=int, default=1, help= \
-    "Number of models to test at once. Defaults to 1.")
   parser.add_argument("-c", "--use_cpu", action="store_true", help= \
     "Force usage of the CPU - will try to use GPU otherwise.")
+  parser.add_argument("-p", "--projection", action="store_true", help= \
+    "Generate a projection visualizing model embedding for each model.")
   args = parser.parse_args()
 
   # Run the training

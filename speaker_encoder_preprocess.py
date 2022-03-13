@@ -25,6 +25,9 @@
 # Usage (Test):
 # python speaker_encoder_preprocess.py ./datasets -d librispeech_test,voxceleb1_test,voxceleb2_test -o ./datasets/SV2TTS/encoder_test/ -s
 #
+# Usage (Dev):
+# python speaker_encoder_preprocess.py ./datasets -d librispeech_dev -o ./datasets/SV2TTS/encoder_dev/ -s
+#
 # Additional options:
 #  -o = Path to output directory - defaults to <datasets_root>/SV2TTS/encoder
 #  -d = List of datasets to preprocess (only train sets will be used) - defaults to librispeech_other,voxceleb1,voxceleb2.
@@ -98,7 +101,7 @@ if __name__ == "__main__":
     "librispeech_test": preprocess_test_librispeech,
     "voxceleb1_test": preprocess_test_voxceleb1,
     "voxceleb2_test": preprocess_test_voxceleb2,
-    "libirspeech_dev": preprocess_dev_librispeech,
+    "librispeech_dev": preprocess_dev_librispeech,
   }
   args = vars(args)
   for dataset in args.pop("datasets"):

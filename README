@@ -8,7 +8,12 @@ Multispeaker Text To Speech Synthesis
 Informed by state-of-the-art research into Multispeaker Text to Speech 
 Synthesis [1]. A neural network-based system generating a waveform file
 of speech given a few seconds of untranscribed reference audio from a target
-speaker as well as the output text. Guided by code published by [2].
+speaker as well as the output text. 
+
+Guided by code published by [2]. Features a wide variety of modifications
+and enhancements in terms of performance and usability, including
+implementations of model evaluation and visualization that were otherwise
+absent.
 
 Contains three independently trained components:
 

@@ -149,8 +149,11 @@ class SpeakerEncoder(nn.Module):
   # Returns the loss + EER for this batch of embeddings, our surrogate
   # performance metric.
   def loss(self, embeds):
+    speakers_per_batch, utterances_per_speaker = embeds.shape[:2]
+
     # Get the similarity matrix first.
     sim_matrix = self.similarity_matrix(embeds)
+
     # Flatten the tensor into a proper matrix. 
     sim_matrix = sim_matrix.reshape((speakers_per_batch * utterances_per_speaker, 
                                     speakers_per_batch))
