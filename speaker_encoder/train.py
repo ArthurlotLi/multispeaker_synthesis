@@ -103,88 +103,84 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
   # Use the profiler to provide training statistics.
   profiler = Profiler(summarize_every=10, disabled=False)
 
-  # Go through epochs.
-  for epoch in range(1, model_epochs):
-    print("[INFO] Training - Epoch %d/%d" % (epoch, model_epochs+1) )
+  # Go through the training dataset each epoch. There's a LOT
+  # of data here. 
+  for step, speaker_batch in enumerate(loader, init_step):
+    profiler.tick("Blocking, waiting for batch (threaded)")
 
-    # Go through the training dataset each epoch. There's a LOT
-    # of data here. 
-    for step, speaker_batch in enumerate(loader, init_step):
-      profiler.tick("Blocking, waiting for batch (threaded)")
+    # Forward propagation. 
 
-      # Forward propagation. 
+    # Send the next batch to the device and propagate them through 
+    # the network.
+    inputs = torch.from_numpy(speaker_batch.data).to(device)
+    sync(device)
+    profiler.tick("Data sent to device: %s" % device)
 
-      # Send the next batch to the device and propagate them through 
-      # the network.
-      inputs = torch.from_numpy(speaker_batch.data).to(device)
-      sync(device)
-      profiler.tick("Data sent to device: %s" % device)
+    # Get the embedding vector output by the model. 
+    embeds = model(inputs)
+    sync(device)
+    profiler.tick("Forward propagation complete")
 
-      # Get the embedding vector output by the model. 
-      embeds = model(inputs)
-      sync(device)
-      profiler.tick("Forward propagation complete")
+    # Calculate the loss with the loss device (Our CPU, not GPU) and
+    # apply it. 
+    embeds_loss = embeds.view((speakers_per_batch, utterances_per_speaker, -1)).to(loss_device)
+    loss, eer = model.loss(embeds_loss)
+    sync(loss_device)
+    profiler.tick("Loss calculated")
 
-      # Calculate the loss with the loss device (Our CPU, not GPU) and
-      # apply it. 
-      embeds_loss = embeds.view((speakers_per_batch, utterances_per_speaker, -1)).to(loss_device)
-      loss, eer = model.loss(embeds_loss)
-      sync(loss_device)
-      profiler.tick("Loss calculated")
+    # Back-propagation.
 
-      # Back-propagation.
+    # Calculate the gradient relative to the calculated loss. 
+    model.zero_grad()
+    loss.backward()
+    profiler.tick("Back-propagation complete")
 
-      # Calculate the gradient relative to the calculated loss. 
-      model.zero_grad()
-      loss.backward()
-      profiler.tick("Back-propagation complete")
+    # Apply the update appropriately given the gradient. 
+    # "do_graident_ops", defined in model.py, applies gradient scaling
+    # and gradient clipping before the step is applied. 
+    model.do_gradient_ops()
+    optimizer.step()
+    profiler.tick("Parameter update complete")
 
-      # Apply the update appropriately given the gradient. 
-      # "do_graident_ops", defined in model.py, applies gradient scaling
-      # and gradient clipping before the step is applied. 
-      model.do_gradient_ops()
-      optimizer.step()
-      profiler.tick("Parameter update complete")
+    # Visualization.
 
-      # Visualization.
+    # Update visualizations given the performance + update of the model.
+    vis.update(loss.item(), eer, step)
 
-      # Update visualizations given the performance + update of the model.
-      vis.update(loss.item(), eer, step)
+    # Draw projections and save them to the backup folder. Do this
+    # only ever <umap_every> few steps.
+    if umap_every != 0 and step % umap_every == 0:
+      print("[DEBUG] Train - Drawing and saving projections (step %d)" % step)
+      # Filename is umap_<step>.png.
+      projection_fpath = model_dir / f"umap_{step:06d}.png"
+      # Visualize the embeddings.
+      embeds = embeds.detach().cpu().numpy()
+      vis.draw_projections(embeds, utterances_per_speaker, step, projection_fpath)
+      vis.save()
 
-      # Draw projections and save them to the backup folder. Do this
-      # only ever <umap_every> few steps.
-      if umap_every != 0 and step % umap_every == 0:
-        print("[DEBUG] Train - Drawing and saving projections (step %d)" % step)
-        # Filename is umap_<step>.png.
-        projection_fpath = model_dir / f"umap_{step:06d}.png"
-        # Visualize the embeddings.
-        embeds = embeds.detach().cpu().numpy()
-        vis.draw_projections(embeds, utterances_per_speaker, step, projection_fpath)
-        vis.save()
+    # Model Saving.
+    
+    # Save the model, overwriting the latest version. Do this only
+    # every <save_every> few steps so you don't slow training down
+    # too much.
+    if save_every != 0 and step % save_every == 0:
+      print("[DEBUG] Train - Saving model (step %d)" % step)
+      torch.save({
+        "step": step + 1,
+        "model_state": model.state_dict(),
+        "optimizer_state": optimizer.state_dict(),
+      }, state_fpath)
+    
+    # Save a backup - essentially a model checkpoint independent
+    # from model saving. 
+    if backup_every != 0 and step % backup_every == 0:
+      print("[DEBUG] Train - Performing model backup (step %d)" % step)
+      backup_fpath = model_dir / f"encoder_{eer:06f}_{loss:06f}_{step:07d}.pt" # .bak means it won't overwrite. 
+      torch.save({
+        "step": step + 1,
+        "model_state": model.state_dict(),
+        "optimizer_state": optimizer.state_dict(),
+      }, backup_fpath)
 
-      # Model Saving.
-      
-      # Save the model, overwriting the latest version. Do this only
-      # every <save_every> few steps so you don't slow training down
-      # too much.
-      if save_every != 0 and step % save_every == 0:
-        print("[DEBUG] Train - Saving model (step %d)" % step)
-        torch.save({
-          "step": step + 1,
-          "model_state": model.state_dict(),
-          "optimizer_state": optimizer.state_dict(),
-        }, state_fpath)
-      
-      # Save a backup - essentially a model checkpoint independent
-      # from model saving. 
-      if backup_every != 0 and step % backup_every == 0:
-        print("[DEBUG] Train - Performing model backup (step %d)" % step)
-        backup_fpath = model_dir / f"encoder_{eer:06f}_{loss:06f}_{step:07d}.pt" # .bak means it won't overwrite. 
-        torch.save({
-          "step": step + 1,
-          "model_state": model.state_dict(),
-          "optimizer_state": optimizer.state_dict(),
-        }, backup_fpath)
-
-      # Ready to go again. 
-      profiler.tick("Visualization, model saving/checkpointing complete")
+    # Ready to go again. 
+    profiler.tick("Visualization, model saving/checkpointing complete")

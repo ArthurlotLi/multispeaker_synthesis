@@ -37,7 +37,8 @@ class SpeakerEncoder(nn.Module):
     self.lstm = nn.LSTM(input_size=mel_n_channels,
                         hidden_size=model_hidden_size, 
                         num_layers=model_num_layers, 
-                        batch_first=True).to(device)
+                        batch_first=True,
+                        dropout=model_dropout).to(device)
                       
     # Our fully connected projection layer.
     self.linear = nn.Linear(in_features=model_hidden_size, 
