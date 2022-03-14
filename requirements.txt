@@ -7,3 +7,5 @@ visdom
 
 # Synthesizer
 lws
+inflect
+unidecode
