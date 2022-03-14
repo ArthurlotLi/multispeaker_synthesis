@@ -2,20 +2,19 @@
 # tacotron.py
 #
 # Open-source implementation of Tacotron in pytorch, transcribed and 
-# annotated by hand. This is professional grade work. 
+# annotated by hand. 
+# 
+# This is professional grade work. 
 #
 # Include modifications described by the original paper to integrate
 # the speaker encoder embedding into the encoder output frames. 
 # Deviations from the model architecture described in the two
 # reference papers are marked accordingly.
 
-import os
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pathlib import Path
-from typing import Union
 
 # Begin Encoder
 

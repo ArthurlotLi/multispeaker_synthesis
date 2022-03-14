@@ -4,3 +4,6 @@ librosa # audio_utils
 ffmpeg 
 umap-learn
 visdom
+
+# Synthesizer
+lws
