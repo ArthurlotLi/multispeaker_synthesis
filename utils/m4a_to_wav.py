@@ -10,6 +10,8 @@
 #
 # Ex) python m4a_to_wav.py ../datasets/voxceleb2_aac ../datasets/VoxCeleb2
 
+# TODO: If you ever use this file again, implement multiprocessing.
+
 import argparse
 import shutil
 import os

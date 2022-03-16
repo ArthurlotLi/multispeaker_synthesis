@@ -35,7 +35,7 @@ def load_model(weights_fpath: Path, device=None):
   # Load the model with the device.
   _model = SpeakerEncoder(_device, torch.device("cpu"))
   checkpoint = torch.load(weights_fpath, _device)
-  _model.load_state_dict(checkpoint["model_state"])
+  _model.load_state_dict(checkpoint["model_state"], strict=False)
 
   # Always set the model into evaluation/inference mode.
   _model.eval()

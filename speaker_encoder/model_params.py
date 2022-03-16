@@ -12,7 +12,8 @@
 data_loader_num_workers = 18
 
 # Model Architecture
-model_hidden_size = 768
+model_hidden_size=256
+#model_hidden_size = 768
 model_embedding_size = 256
 model_num_layers = 3
 
@@ -25,8 +26,8 @@ model_similarity_weight_grad_modifier = 0.01
 model_similarity_bias_grad_modifier = 0.01
 model_grad_clip = 3
 
-#model_dropout = 0
-model_dropout = 0.5
+model_dropout = 0
+#model_dropout = 0.5
 
 # Authors of the paper use N = 64 and M = 10 as parameters for the
 # batch size. (Hypothetically, enrolling a speaker in speaker
