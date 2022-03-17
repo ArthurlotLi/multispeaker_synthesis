@@ -29,6 +29,8 @@ class HParams(object):
   
 # Default hparams.
 
+_hparams_tts_schedule_batch_size = 32 # Consistent batch size for all schedules. 
+
 hparams = HParams(
   # Signal Processing (Used in both synthesizer and vocoder)
   sample_rate = 16000,
@@ -59,13 +61,15 @@ hparams = HParams(
   # frame that has all values < -3.4.
   tts_stop_threshold = -3.4,
 
+  tts_dataloader_num_workers = 4, # Added for performance improvements.
+
   # Tacotron Training - Hyperparameters
-  tts_schedule = [(2,  1e-3,  20_000,  12),   # Progressive training schedule
-                  (2,  5e-4,  40_000,  12),   # (r, lr, step, batch_size)
-                  (2,  2e-4,  80_000,  12),   #
-                  (2,  1e-4, 160_000,  12),   # r = reduction factor (# of mel frames
-                  (2,  3e-5, 320_000,  12),   #     synthesized for each decoder iteration)
-                  (2,  1e-5, 640_000,  12)],  # lr = learning rate
+  tts_schedule = [(2,  1e-3,  20_000,  _hparams_tts_schedule_batch_size),   # Progressive training schedule
+                  (2,  5e-4,  40_000,  _hparams_tts_schedule_batch_size),   # (r, lr, step, batch_size)
+                  (2,  2e-4,  80_000,  _hparams_tts_schedule_batch_size),   #
+                  (2,  1e-4, 160_000,  _hparams_tts_schedule_batch_size),   # r = reduction factor (# of mel frames
+                  (2,  3e-5, 320_000,  _hparams_tts_schedule_batch_size),   #     synthesized for each decoder iteration)
+                  (2,  1e-5, 640_000,  _hparams_tts_schedule_batch_size)],  # lr = learning rate
 
   tts_clip_grad_norm = 1.0, # Prevents gradient explosion (set to None if not desired)
   tts_eval_interval = 500,  # Num steps between evaluation. Set to -1 for every epoch, or 0 to disable. 

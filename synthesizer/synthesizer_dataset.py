@@ -83,7 +83,7 @@ def collate_synthesizer(batch, r, hparams):
   mel = np.stack(mel)
 
   # Speaker embedding with the speaker encoder. 
-  embeds = np.array(x[2] for x in batch)
+  embeds = np.array([x[2] for x in batch])
 
   # Index (for vocoder preprocessing)
   indices = [x[3] for x in batch]

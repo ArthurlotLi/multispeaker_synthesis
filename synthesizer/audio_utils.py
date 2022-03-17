@@ -93,11 +93,11 @@ def inv_linear_spectogram(linear_spectogram, hparams):
     return inv_preemphasis(_griffin_lim(S ** hparams.power, hparams), hparams.preemphasis, hparams.preemphasize)
   
 # Converts mel spectogram to waveform using Librosa
-def inv_mel_spectrogram(mel_spectrogram, hparams):
+def inv_mel_spectogram(mel_spectogram, hparams):
   if hparams.signal_normalization:
-    D = _denormalize(mel_spectrogram, hparams)
+    D = _denormalize(mel_spectogram, hparams)
   else:
-    D = mel_spectrogram
+    D = mel_spectogram
   
   S = _mel_to_linear(_db_to_amp(D + hparams.ref_level_db), hparams)  # Convert back to linear
   
