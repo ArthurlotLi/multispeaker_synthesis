@@ -4,8 +4,6 @@
 # All hyperparameters used in this component. Includes audio parameters
 # as well as model parameters. 
 
-import ast
-from msilib.schema import SelfReg
 import pprint
 
 class HParams(object):
@@ -15,17 +13,6 @@ class HParams(object):
   def __getitem__(self, key): return getattr(self, key)
   def __repr__(self): return pprint.pformat(self.__dict__)
 
-  # Overwrites existing hparams with a comma-separated string of
-  # name-value pairs. 
-  def parse(self, string):
-    if len(string) > 0:
-      overrides = [s.split("=") for s in string.split(",")]
-      keys, values = zip(*overrides)
-      keys = list(map(str.split, keys))
-      values = list(map(str.strip, values))
-      for k in keys:
-        self.__dict__[k] = ast.literal_eval(values[keys.index(k)])
-    return SelfReg
   
 # Default hparams.
 
