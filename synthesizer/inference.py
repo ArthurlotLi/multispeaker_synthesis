@@ -102,7 +102,7 @@ class Synthesizer:
       # Pad texts so they are all of the same length.
       text_lens = [len(text) for text in batch]
       max_text_len = max(text_lens)
-      chars = [pad1d(text, max_text_len) for text in batch]
+      chars = [self.pad1d(text, max_text_len) for text in batch]
       chars = np.stack(chars)
 
       # Stack speaker embeddings into 2D array so we can process 
@@ -156,7 +156,7 @@ class Synthesizer:
   def griffin_lim(mel):
     return audio.inv_mel_spectogram(mel, hparams)
 
-
-# Helper function. 
-def pad1d(x, max_len, pad_value=0):
-  return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)
+  @staticmethod
+  # Helper function. 
+  def pad1d(x, max_len, pad_value=0):
+    return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)

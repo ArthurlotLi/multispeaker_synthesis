@@ -76,7 +76,8 @@ hparams = HParams(
   tts_eval_num_samples = 1, # Number of samples during evaluation. 
 
   # Data preprocessing
-  max_mel_frames = 1800,
+  #max_mel_frames = 1800,
+  max_mel_frames = 900,
   rescale = True,
   rescaling_max = 0.9,
   synthesis_batch_size = 16, # For vocoder preprocessing and inference.

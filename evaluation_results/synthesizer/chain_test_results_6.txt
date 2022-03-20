@@ -1,0 +1,45 @@
+================================================
+Multispeaker Synthesis - Synthesizer Test Results
+================================================
+
+0.32210483 - synthesizer_0.2625_109900.pt
+0.32605937 - synthesizer_0.2622_119100.pt
+0.32619697 - synthesizer_0.2625_107000.pt
+0.32672716 - synthesizer_0.2631_112400.pt
+0.32693824 - synthesizer_0.2643_116300.pt
+0.32702684 - synthesizer_0.2627_118100.pt
+0.32719666 - synthesizer_0.2635_113000.pt
+0.32729121 - synthesizer_0.2615_100700.pt
+0.32750038 - synthesizer_0.2609_106000.pt
+0.32753921 - synthesizer_0.2604_111500.pt
+0.32761216 - synthesizer_0.2611_118800.pt
+0.32764097 - synthesizer_0.2597_121200.pt
+0.32764107 - synthesizer_0.2649_103500.pt
+0.32806668 - synthesizer_0.2646_106100.pt
+0.32806819 - synthesizer_0.2609_096900.pt
+0.32827790 - synthesizer_0.2633_101500.pt
+0.32830815 - synthesizer_0.2606_111700.pt
+0.32835674 - synthesizer_0.2627_119800.pt
+0.32847468 - synthesizer_0.2639_117700.pt
+0.32848787 - synthesizer_0.2640_116600.pt
+0.32851017 - synthesizer_0.2647_114000.pt
+0.32856533 - synthesizer_0.2619_099400.pt
+0.32880585 - synthesizer_0.2643_096800.pt
+0.32895542 - synthesizer_0.2634_109000.pt
+0.32898500 - synthesizer_0.2632_118900.pt
+0.32902505 - synthesizer_0.2637_119300.pt
+0.32926452 - synthesizer_0.2649_097800.pt
+0.32941171 - synthesizer_0.2635_094700.pt
+0.32944643 - synthesizer_0.2635_104100.pt
+0.32951491 - synthesizer_0.2590_089900.pt
+0.32955190 - synthesizer_0.2623_120000.pt
+0.32975915 - synthesizer_0.2569_118000.pt
+0.32982916 - synthesizer_0.2635_099700.pt
+0.32987873 - synthesizer_0.2642_109500.pt
+0.33025398 - synthesizer_0.2632_089100.pt
+0.33133733 - synthesizer_0.2625_112900.pt
+0.33135430 - synthesizer_0.2649_107300.pt
+0.33158166 - synthesizer_0.2649_099300.pt
+0.33195810 - synthesizer_0.2611_092800.pt
+0.33209910 - synthesizer_0.2650_112800.pt
+0.33283438 - synthesizer_0.2626_080400.pt

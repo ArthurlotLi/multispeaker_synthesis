@@ -13,7 +13,6 @@
 # data to be relatively small, with the intent to load every model
 # and run forward pass for every model only once. 
 
-import synthesizer.audio_utils as audio
 from synthesizer.tacotron import Tacotron
 from synthesizer.hparams import hparams
 from synthesizer.utils.symbols import symbols
@@ -39,7 +38,7 @@ _file_name_suffix = ".txt"
 # hyperparameter. 
 _model_r = 2
 
-_batch_size = 32
+_batch_size = 38 # Whatever that can fill the VRAM the best.
 _num_dataloader_workers = 1 # Data loading is SUPER fast. 
 
 # Principal function for executing batch model testing, given a
@@ -103,19 +102,20 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path,
   for i, filename in tqdm(enumerate(files_models), desc="Models Tested", total=len(files_models)):
     loss = None
 
-    try:
+    #try:
       # Use batch + filename. 
-      loss = _test_model_worker(model_batch_dir + "/" + file, dataset, device)
-    except Exception as e:
-      print("\n\n[WARNING] Test - Encountered exception while testing file: %s" % file)
-      print(e, end="\n\n")
+    loss = _test_model_worker(model_batch_dir + "/" + filename, dataset, 
+                              device, verbose=True)
+    #except Exception as e:
+      #print("\n\n[WARNING] Test - Encountered exception while testing file: %s" % filename)
+      #print(e, end="\n\n")
 
     if loss is None:
       print("[WARNING] Test - Received empty loss!")
       chain_test_results[filename_uid] = "00.00000000 - " + str(filename) + " TEST FAILED!\n"
       chain_test_results_acc_map[-1] = filename_uid
     else:
-      chain_test_results[filename_uid] = "%.8f - " % (loss*100) + str(filename) + "\n"
+      chain_test_results[filename_uid] = "%.8f - " % (loss) + str(filename) + "\n"
       # If a model of that exact accuracy exists already, append
       # a tiny number to it until it's unique. 
       if loss in chain_test_results_acc_map:
@@ -142,7 +142,7 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path,
 
 
 # Evaluate a model, given the location of the model, and the batch.
-def _test_model_worker(model_location, dataset, device):
+def _test_model_worker(model_location, dataset, device, verbose=True):
   # Load the model with the device.
   model = Tacotron(embed_dims=hparams.tts_embed_dims,
                    num_chars=len(symbols),
@@ -163,8 +163,9 @@ def _test_model_worker(model_location, dataset, device):
 
   # Always set the model into evaluation/inference mode.
   model.eval()
-
-  print("[INFO] Test - Loaded synthesizer \"%s\" trained to step %d" % (model_location, model.state_dict()["step"]))
+  
+  if verbose:
+    print("[INFO] Test - Loaded synthesizer \"%s\" trained to step %d" % (model_location, model.state_dict()["step"]))
 
   # Create a dataloader for this session.
   collate_fn = partial(collate_synthesizer, r = _model_r, hparams = hparams)
@@ -173,9 +174,11 @@ def _test_model_worker(model_location, dataset, device):
                       _num_dataloader_workers, 
                       collate_fn=collate_fn)
 
+  # Process all examples inte test dataset. 
   total_loss = 0
-
-  for step, (texts, mels, embeds, idx) in enumerate(loader):
+  total_steps = 0
+  #for step, (texts, mels, embeds, idx) in enumerate(loader):
+  for step, (texts, mels, embeds, idx) in tqdm(enumerate(loader), desc="Testing: '%s'" % model_location, total=len(loader)):
     # Generate stop tokens for training. 
     stop = torch.ones(mels.shape[0], mels.shape[2])
     for j, k in enumerate(idx):
@@ -196,7 +199,15 @@ def _test_model_worker(model_location, dataset, device):
     loss = m1_loss + m2_loss + stop_loss
 
     # Append to our total loss. 
-    total_loss += loss
+    total_loss += loss.item()
+    total_steps += 1
+
+  # In order to keep our loss in the same context as the training loss, 
+  # take the expectation across all steps. 
+  total_loss = total_loss / total_steps
+
+  if verbose:
+    print("[INFO] Test - Test complete! total loss across %d steps: %.8f.\n" % (total_steps, total_loss))
 
   # Return the result.
   return total_loss
@@ -208,7 +219,7 @@ def _write_batch_results(test_report_dir, chain_test_results, chain_test_results
     print("\n[INFO] Test - Chain test complete. Writing results to file '%s'..." % filename)
     f = open(filename, "w")
 
-    f.write("=================================\nMultispeaker Synthesis - Synthesizer Test Results\n=================================\n\n")
+    f.write("================================================\nMultispeaker Synthesis - Synthesizer Test Results\n================================================\n\n")
     # Write results of each model, sorted.
     for key in chain_test_results_acc_map:
       f.write(chain_test_results[chain_test_results_acc_map[key]])
@@ -261,7 +272,7 @@ def _graph_train_test_history(chain_test_results, chain_test_results_acc_map, fi
 
       result_string_split = string_split_apos[1].split("_")
       step = int(result_string_split[2].split(".p")[0].strip())
-      train_loss = float(result_string_split[1].strip())*100
+      train_loss = float(result_string_split[1].strip())
       
       indices.append(step)
       test_losses.append(test_loss)

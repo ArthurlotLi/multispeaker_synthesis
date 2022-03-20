@@ -30,8 +30,6 @@ if __name__ == "__main__":
     "Path to where the test report should be placed.")
   parser.add_argument("-c", "--use_cpu", action="store_true", help= \
     "Force usage of the CPU - will try to use GPU otherwise.")
-  parser.add_argument("-p", "--projection", action="store_true", help= \
-    "Generate a projection visualizing model embedding for each model.")
   args = parser.parse_args()
 
   # Run the training

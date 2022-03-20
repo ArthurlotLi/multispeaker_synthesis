@@ -10,7 +10,12 @@
 #
 # LibriSpeech: https://www.openslr.org/12/
 
-# Usage: python synthesizer_preprocess_audio.py ./datasets
+# Usage (train): 
+# python synthesizer_preprocess_audio.py ./datasets
+#
+# Usage (test):
+# python synthesizer_preprocess_audio.py ./datasets -o ./datasets/SV2TTS/synthesizer_test --subfolders test-clean,dev-clean
+
 
 from synthesizer.preprocess import preprocess_dataset
 from synthesizer.hparams import hparams

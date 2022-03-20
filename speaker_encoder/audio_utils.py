@@ -66,7 +66,7 @@ def preprocess_audio(audio_location_or_wav: Union[str, Path, np.ndarray],
   # Resampling to match the expected sampling rate in audio_params if
   # necessary.
   if source_sr is not None and source_sr != sampling_rate:
-    wav = librosa.resample(wav, source_sr, sampling_rate)
+    wav = librosa.resample(wav, orig_sr=source_sr, target_sr=sampling_rate)
 
   # Apply Preprocessing. Audio normalization + Voice Activity Detection
   # (VAD, aka silence trimming)

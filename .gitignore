@@ -6,3 +6,8 @@
 /synthesizer/data
 /synthesizer/__pycache__
 /vocoder/__pycache__
+
+debug_model1.wav
+debug_pretrained.wav
+
+/production_models/synthesizer
