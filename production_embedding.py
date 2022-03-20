@@ -63,19 +63,16 @@ class Embedding:
 
 # Debug usage. 
 if __name__ == "__main__":
-  """
   parser = argparse.ArgumentParser()
-  parser.add_argument("speaker_encoder_fpath")
   parser.add_argument("wav_fpath")
-  parser.add_argument("embed_fpath")
   args = parser.parse_args()
 
-  speaker_encoder_fpath = args.speaker_encoder_fpath
+  speaker_encoder_fpath = Path("./production_models/speaker_encoder/model1/encoder.pt")
+
   wav_fpath = args.wav_fpath
-  embed_fpath = args.embed_fpath
 
   embedding = Embedding(speaker_encoder_fpath)
-  embedding.single_embedding(wav_fpath, embed_fpath)
+  embedding.single_embedding(wav_fpath, wav_fpath.replace(".wav",""))
   """
   # Ex) python production_embedding.py ../multispeaker_synthesis_speakers
   parser = argparse.ArgumentParser()
@@ -86,3 +83,4 @@ if __name__ == "__main__":
 
   embedding = Embedding(speaker_encoder_fpath)
   embedding.generate_subdirectory_embeds(args.parent_directory)
+  """

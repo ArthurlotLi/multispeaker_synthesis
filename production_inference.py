@@ -11,6 +11,14 @@ class MultispeakerSynthesis:
   synthesizer = None
   embedding = None
 
+  # If we get a sample that is longer than the max chars OR we get
+  # a greater number than max samples, we'll be splitting into small
+  # minibatches of the specified size so we don't run into VRAM or
+  # RAM issues. 
+  longest_max_chars = 125
+  largest_number_of_samples = 24
+  max_batch_size = 2
+
   # Expects fpaths for the synthesizer and optionally the encoder.
   # If the encoder path is provided and load_immediately is true,
   # then we will load the encoder as well. 
@@ -38,17 +46,43 @@ class MultispeakerSynthesis:
   def synthesize_audio_from_audio(self, texts: List[str], 
                                   wav_fpath: Path):
     if self.embedding is None:
-       self._load_embedding()
-    
-    # Generate the encoding for the audio. 
-    embeds = self.embedding.single_embedding(wav_fpath)
+      self._load_embedding()
 
-    # Duplicate the embeddings - one for each utterance.
-    num_texts = len(texts)
-    concat_embeds = []
-    for i in range(num_texts): concat_embeds.append(embeds)
-    mels = self.synthesizer.synthesize_spectograms(texts=texts, embeddings=concat_embeds)
-    return self.vocode_mels(mels)
+    split_into_batches = False
+    if len(texts) > self.largest_number_of_samples:
+      split_into_batches = True
+
+    longest_text = 0
+    for text in texts:
+      text_len = len(text)
+      if longest_text < text_len:
+        longest_text = text_len
+      if self.longest_max_chars < text_len:
+        split_into_batches = True
+
+    batches = []
+    if split_into_batches:
+      # Split into minibatches of expected sizes. 
+      batches = list(self.chunks(texts, self.max_batch_size))
+    else:
+      batches = [texts]
+
+    print("[DEBUG] Multispeaker Synthesis - Longest: %d chars. Processing in %d batches." % (longest_text, len(batches)))
+
+    total_mels = []
+    for batch in batches:
+      # Generate the encoding for the audio. 
+      embeds = self.embedding.single_embedding(wav_fpath)
+
+      # Duplicate the embeddings - one for each utterance.
+      num_texts = len(batch)
+      if num_texts > 0:
+        concat_embeds = []
+        for i in range(num_texts): concat_embeds.append(embeds)
+        mels = self.synthesizer.synthesize_spectograms(texts=batch, embeddings=concat_embeds)
+        total_mels += mels
+
+    return self.vocode_mels(total_mels)
 
 
   # Given texts to generate mels from as well as the fpath to the
@@ -58,12 +92,38 @@ class MultispeakerSynthesis:
                                    embeds_fpath: Path):
     embeds = np.load(embeds_fpath)
 
-    # Duplicate the embeddings - one for each utterance.
-    num_texts = len(texts)
-    concat_embeds = []
-    for i in range(num_texts): concat_embeds.append(embeds)
-    mels = self.synthesizer.synthesize_spectograms(texts=texts, embeddings=concat_embeds)
-    return self.vocode_mels(mels)
+    split_into_batches = False
+    if len(texts) > self.largest_number_of_samples:
+      split_into_batches = True
+
+    longest_text = 0
+    for text in texts:
+      text_len = len(text)
+      if longest_text < text_len:
+        longest_text = text_len
+      if self.longest_max_chars < text_len:
+        split_into_batches = True
+
+    batches = []
+    if split_into_batches:
+      # Split into minibatches of expected sizes. 
+      batches = list(self.chunks(texts, self.max_batch_size))
+    else:
+      batches = [texts]
+
+    print("[DEBUG] Multispeaker Synthesis - Longest: %d chars. Processing in %d batches." % (longest_text, len(batches)))
+
+    total_mels = []
+    for batch in batches:
+      # Duplicate the embeddings - one for each utterance.
+      num_texts = len(batch)
+      if num_texts > 0:
+        concat_embeds = []
+        for i in range(num_texts): concat_embeds.append(embeds)
+        mels = self.synthesizer.synthesize_spectograms(texts=batch, embeddings=concat_embeds)
+        total_mels += mels
+
+    return self.vocode_mels(total_mels)
 
   # Given mels, provides audio wav. 
   def vocode_mels(self, mels):
@@ -76,6 +136,12 @@ class MultispeakerSynthesis:
   # Expose this for users. 
   def save_wav(self, wav, path):
     audio.save_wav(wav, path, sr=hparams.sample_rate)
+
+  # Source: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+  def chunks(self, lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
 # Debug only. Example usage:
