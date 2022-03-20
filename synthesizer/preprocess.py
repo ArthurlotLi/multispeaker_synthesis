@@ -24,7 +24,8 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
   # Gather the input directories and verify they all exist.
   dataset_root = datasets_root.joinpath(datasets_name)
   input_dirs = [dataset_root.joinpath(subfolder.strip()) for subfolder in subfolders.split(",")]
-  print("[INFO] Preprocess - Using data from: ".join(map(str, input_dirs)))
+  print("[INFO] Preprocess - Using data from: ")
+  print(" ".join(map(str, input_dirs)))
   assert all(input_dir.exists() for input_dir in input_dirs)
 
   # Create output directories for each output file type. 

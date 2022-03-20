@@ -1,32 +1,32 @@
 #
-# speaker_encoder_test.py
+# synthesizer_test.py
 #
-# Testing harness for speaker encoder models. Allows for the chain
+# Testing harness for synthesizer models. Allows for the chain
 # testing of multiple model variants at once with the test set. 
 # 
-# By default expects the data to be in ./datasets/SV2TTS/encoder_test.
+# By default expects the data to be in ./datasets/SV2TTS/synthesizer_test.
 #
 # Usage:
-# python speaker_encoder_test.py ./saved_models/model1
+# python synthesizer_test.py ./saved_models/model1
 
 
 from utils.argutils import print_args
-from speaker_encoder.test import batch_test
+from synthesizer.test import batch_test
 
 from pathlib import Path
 import argparse
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
-    description="Tests the speaker encoder.",
+    description="Tests the synthesizer.",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
   )
 
   parser.add_argument("model_batch_dir", type=str, help= \
     "Location for all of the models to batch test.")
-  parser.add_argument("-d","--clean_data_root", type=Path, default="./datasets/SV2TTS/encoder_test", help= \
-    "Path to the output directory of encoder_preprocess.py.")
-  parser.add_argument("-t", "--test_report_dir", type=Path, default="./evaluation_results/speaker_encoder", help=\
+  parser.add_argument("-d","--clean_data_root", type=Path, default="./datasets/SV2TTS/synthesizer_test", help= \
+    "Path to the output directory of synthesizer_preprocess.py.")
+  parser.add_argument("-t", "--test_report_dir", type=Path, default="./evaluation_results/synthesizer", help=\
     "Path to where the test report should be placed.")
   parser.add_argument("-c", "--use_cpu", action="store_true", help= \
     "Force usage of the CPU - will try to use GPU otherwise.")
