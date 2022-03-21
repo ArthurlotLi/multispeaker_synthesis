@@ -70,6 +70,8 @@ class MultispeakerSynthesis:
 
     print("[DEBUG] Multispeaker Synthesis - Total chars: %d. Processing in %d batches." % (total_chars, len(batches)))
 
+    start_time = time.time()
+
     total_mels = []
     for batch in batches:
       # Generate the encoding for the audio. 
@@ -81,6 +83,8 @@ class MultispeakerSynthesis:
       for i in range(num_texts): concat_embeds.append(embeds)
       mels = self.synthesizer.synthesize_spectograms(texts=batch, embeddings=concat_embeds)
       total_mels += mels
+
+    print("[DEBUG] Multispeaker Synthesis - Synthesis completed %.4f seconds." % (time.time() - start_time))
 
     return self.vocode_mels(total_mels)
 
@@ -115,6 +119,8 @@ class MultispeakerSynthesis:
 
     print("[DEBUG] Multispeaker Synthesis - Total chars: %d. Processing in %d batches." % (batch_chars, len(batches)))
 
+    start_time = time.time()
+
     total_mels = []
     for batch in batches:
       # Duplicate the embeddings - one for each utterance.
@@ -123,6 +129,8 @@ class MultispeakerSynthesis:
       for i in range(num_texts): concat_embeds.append(embeds)
       mels = self.synthesizer.synthesize_spectograms(texts=batch, embeddings=concat_embeds)
       total_mels += mels
+
+    print("[DEBUG] Multispeaker Synthesis - Synthesis completed %.4f seconds." % (time.time() - start_time))
 
     return self.vocode_mels(total_mels)
 
