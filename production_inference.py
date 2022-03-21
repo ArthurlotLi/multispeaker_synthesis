@@ -8,6 +8,7 @@
 from synthesizer.inference import *
 
 import time
+import re
 
 class MultispeakerSynthesis:
   synthesizer = None
@@ -151,24 +152,37 @@ class MultispeakerSynthesis:
 
 
 # Debug only. Example usage:
-# python production_inference.py pretrained
+# python production_inference.py "How are you today?"
 if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser()
-  parser.add_argument("model_num")
+  parser.add_argument("text_to_speak")
   args = parser.parse_args()
 
-  synthesizer_fpath = Path("./production_models/synthesizer/"+args.model_num+"/synthesizer.pt")
-  speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+args.model_num+"/encoder.pt")
+  model_num = "model1"
 
-  wav_fpath = Path("../multispeaker_synthesis_speakers/eleanor/Neutral.wav")
-  text_to_speak = ["The weather outside is sunny", "clear skies", "with a maximum of 85 and a minimum of 75","Humidity is 15 percent."]
+  synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/synthesizer.pt")
+  speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
 
-  debug_out = "./debug_" + args.model_num+ ".wav"
+  wav_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/eleanor/Neutral.wav")
+
+  text_to_speak = [args.text_to_speak]
+  split_sentence_re = r'[\.|!|,|\?|:|;|-] '
+
+  # The only preprocessing we do here is to split sentences into
+  # different strings. This makes the pronunciation cleaner and also
+  # makes inference faster (as it happens in a batch).
+  processed_texts = []
+  for text in text_to_speak:
+    split_text = re.split(split_sentence_re, text)
+    processed_texts += split_text
+    processed_texts
+
+  debug_out = "./debug_"+model_num+ ".wav"
 
   multispeaker_synthesis = MultispeakerSynthesis(synthesizer_fpath=synthesizer_fpath,
                                                  speaker_encoder_fpath=speaker_encoder_fpath)
-  wavs = multispeaker_synthesis.synthesize_audio_from_audio(texts = text_to_speak, wav_fpath = wav_fpath)
+  wavs = multispeaker_synthesis.synthesize_audio_from_audio(texts = processed_texts, wav_fpath = wav_fpath)
 
   for wav in wavs:
     audio.save_wav(wav, debug_out, sr=hparams.sample_rate)
