@@ -127,6 +127,7 @@ class MultispeakerSynthesis:
   # Given mels, provides audio wav. 
   def vocode_mels(self, mels):
     # TODO: for now, griffin lim is hard coded. 
+    print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to Griffin Lim.")
     wavs = []
     for mel in mels:
       wavs.append(audio.inv_mel_spectogram(mel, hparams))
