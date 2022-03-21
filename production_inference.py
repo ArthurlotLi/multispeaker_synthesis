@@ -7,6 +7,8 @@
 
 from synthesizer.inference import *
 
+import time
+
 class MultispeakerSynthesis:
   synthesizer = None
   embedding = None
@@ -128,9 +130,11 @@ class MultispeakerSynthesis:
   def vocode_mels(self, mels):
     # TODO: for now, griffin lim is hard coded. 
     print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to Griffin Lim.")
+    start_time = time.time()
     wavs = []
     for mel in mels:
       wavs.append(audio.inv_mel_spectogram(mel, hparams))
+    print("[DEBUG] Multispeaker Synthesis - Griffin Lim completed %.4f seconds." % (time.time() - start_time))
     return wavs
   
   # Expose this for users. 
