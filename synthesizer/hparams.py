@@ -51,10 +51,16 @@ hparams = HParams(
   tts_dataloader_num_workers = 4, # Added for performance improvements.
 
   # Tacotron Training - Hyperparameters
+  #tts_schedule = [(2,  1e-3,  20_000,  _hparams_tts_schedule_batch_size),   # Progressive training schedule
+  #                (2,  5e-4,  40_000,  _hparams_tts_schedule_batch_size),   # (r, lr, step, batch_size)
+  #                (2,  2e-4,  80_000,  _hparams_tts_schedule_batch_size),   #
+  #                (2,  1e-4, 160_000,  _hparams_tts_schedule_batch_size),   # r = reduction factor (# of mel frames
+  #                (2,  3e-5, 320_000,  _hparams_tts_schedule_batch_size),   #     synthesized for each decoder iteration)
+  #                (2,  1e-5, 640_000,  _hparams_tts_schedule_batch_size)],  # lr = learning rate
   tts_schedule = [(2,  1e-3,  20_000,  _hparams_tts_schedule_batch_size),   # Progressive training schedule
                   (2,  5e-4,  40_000,  _hparams_tts_schedule_batch_size),   # (r, lr, step, batch_size)
                   (2,  2e-4,  80_000,  _hparams_tts_schedule_batch_size),   #
-                  (2,  1e-4, 160_000,  _hparams_tts_schedule_batch_size),   # r = reduction factor (# of mel frames
+                  (2,  6e-5, 160_000,  _hparams_tts_schedule_batch_size),   # r = reduction factor (# of mel frames
                   (2,  3e-5, 320_000,  _hparams_tts_schedule_batch_size),   #     synthesized for each decoder iteration)
                   (2,  1e-5, 640_000,  _hparams_tts_schedule_batch_size)],  # lr = learning rate
 

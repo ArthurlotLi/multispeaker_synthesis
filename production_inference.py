@@ -9,6 +9,9 @@ from synthesizer.inference import *
 
 import time
 import re
+from multiprocessing import Pool
+from functools import partial
+from tqdm import tqdm
 
 class MultispeakerSynthesis:
   synthesizer = None
@@ -19,6 +22,9 @@ class MultispeakerSynthesis:
   # minibatches of the specified size so we don't run into VRAM or
   # RAM issues. 
   longest_max_chars = 200
+
+  # Number of processes for griffin lim parallel processing. 
+  griffin_lim_num_processes = 1
 
   # Expects fpaths for the synthesizer and optionally the encoder.
   # If the encoder path is provided and load_immediately is true,
@@ -137,9 +143,15 @@ class MultispeakerSynthesis:
 
   # Given mels, provides audio wav. 
   def vocode_mels(self, mels):
-    # TODO: for now, griffin lim is hard coded. 
     print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to Griffin Lim.")
     start_time = time.time()
+    """
+    func = partial(audio.inv_mel_spectogram, hparams = hparams)
+    job = Pool(self.griffin_lim_num_processes).imap(func, mels)
+    wavs = list(tqdm(job, "Griffin Lim Vocoding", len(mels), unit="mel"))
+    """
+    # For some reason, griffin lim works better without parallelization. 
+    # TODO: Use a better vocoder dangit! 
     wavs = []
     for mel in mels:
       wavs.append(audio.inv_mel_spectogram(mel, hparams))
@@ -160,8 +172,9 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   model_num = "model1"
+  synthesizer_name = "synthesizer"
 
-  synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/synthesizer.pt")
+  synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/" + synthesizer_name + ".pt")
   speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
 
   wav_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/eleanor/Neutral.wav")
@@ -178,7 +191,7 @@ if __name__ == "__main__":
     processed_texts += split_text
     processed_texts
 
-  debug_out = "./debug_"+model_num+ ".wav"
+  debug_out = "./debug_%s.wav" % model_num
 
   multispeaker_synthesis = MultispeakerSynthesis(synthesizer_fpath=synthesizer_fpath,
                                                  speaker_encoder_fpath=speaker_encoder_fpath)
