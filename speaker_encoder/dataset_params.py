@@ -25,6 +25,11 @@ librispeech_datasets = {
     },
 }
 
+talesskits_datasets = {
+    "train":  ["TalesSkits/train"],
+    "test": ["TalesSkits/test"],
+}
+
 # Voxceleb stuff. We're using these exclusively for the speaker
 # encoder. 
 # NOTE: This is not used, and instead hard-coded for simplicity.

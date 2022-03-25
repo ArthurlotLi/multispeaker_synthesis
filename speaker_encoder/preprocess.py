@@ -18,7 +18,7 @@ from tqdm import tqdm
 import numpy as np
 
 import speaker_encoder.audio_utils
-from speaker_encoder.dataset_params import librispeech_datasets, anglophone_nationalites
+from speaker_encoder.dataset_params import librispeech_datasets, anglophone_nationalites, talesskits_datasets
 from speaker_encoder.audio_params import * 
 
 # The extensions we expect to find in our dataset
@@ -327,6 +327,28 @@ def preprocess_test_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing 
 # For good measure, allow preprocessing of the dev dataset of librispeech. 
 def preprocess_dev_librispeech(datasets_root: Path, out_dir: Path, skip_existing = False):
   for dataset_name in librispeech_datasets["dev"]["other"]:
+    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+      return # We've already logged the error.
+    
+    # Go through all the speakers. 
+    speaker_dirs = list(dataset_root.glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+# TalesSkits Preprocessing - Test and Train
+
+def preprocess_train_talesskits(datasets_root: Path, out_dir: Path, skip_existing = False):
+  for dataset_name in talesskits_datasets["train"]:
+    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+      return # We've already logged the error.
+    
+    # Go through all the speakers. 
+    speaker_dirs = list(dataset_root.glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
+def preprocess_test_talesskits(datasets_root: Path, out_dir: Path, skip_existing = False):
+  for dataset_name in talesskits_datasets["test"]:
     dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
     if not dataset_root:
       return # We've already logged the error.

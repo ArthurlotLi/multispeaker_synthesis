@@ -28,6 +28,10 @@
 # Usage (Dev):
 # python speaker_encoder_preprocess.py ./datasets -d librispeech_dev -o ./datasets/SV2TTS/encoder_dev/ -s
 #
+# TalesSkits Usage:
+# Train: python speaker_encoder_preprocess.py ./datasets -d talesskits_train
+# Test: python speaker_encoder_preprocess.py ./datasets -d talesskits_test -o ./datasets/SV2TTS/encoder_test/ -s
+#
 # Additional options:
 #  -o = Path to output directory - defaults to <datasets_root>/SV2TTS/encoder
 #  -d = List of datasets to preprocess (only train sets will be used) - defaults to librispeech_other,voxceleb1,voxceleb2.
@@ -35,7 +39,7 @@
 
 from speaker_encoder.preprocess import preprocess_librispeech,preprocess_voxceleb1, preprocess_voxceleb2
 from speaker_encoder.preprocess import preprocess_test_librispeech, preprocess_test_voxceleb1, preprocess_test_voxceleb2 
-from speaker_encoder.preprocess import preprocess_dev_librispeech
+from speaker_encoder.preprocess import preprocess_dev_librispeech, preprocess_train_talesskits, preprocess_test_talesskits
 from utils.argutils import print_args
 
 from pathlib import Path
@@ -102,6 +106,8 @@ if __name__ == "__main__":
     "voxceleb1_test": preprocess_test_voxceleb1,
     "voxceleb2_test": preprocess_test_voxceleb2,
     "librispeech_dev": preprocess_dev_librispeech,
+    "talesskits_train": preprocess_train_talesskits,
+    "talesskits_test": preprocess_test_talesskits
   }
   args = vars(args)
   for dataset in args.pop("datasets"):
