@@ -8,6 +8,7 @@
 #
 # Usage:
 # python synthesizer_test.py ./saved_models/model1
+# python synthesizer_test.py ./production_models/synthesizer/model1
 
 
 from utils.argutils import print_args

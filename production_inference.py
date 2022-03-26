@@ -177,7 +177,7 @@ if __name__ == "__main__":
   synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/" + synthesizer_name + ".pt")
   speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
 
-  wav_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/eleanor/Neutral.wav")
+  embeds_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/ELEANOR.npy")
 
   text_to_speak = [args.text_to_speak]
   split_sentence_re = r'[\.|!|,|\?|:|;|-] '
@@ -195,27 +195,34 @@ if __name__ == "__main__":
 
   multispeaker_synthesis = MultispeakerSynthesis(synthesizer_fpath=synthesizer_fpath,
                                                  speaker_encoder_fpath=speaker_encoder_fpath)
-  wavs = multispeaker_synthesis.synthesize_audio_from_audio(texts = processed_texts, wav_fpath = wav_fpath)
+  wavs = multispeaker_synthesis.synthesize_audio_from_embeds(texts = processed_texts, embeds_fpath = embeds_fpath)
 
-  for wav in wavs:
-    audio.save_wav(wav, debug_out, sr=hparams.sample_rate)
+  def play_wavs(wavs, debug_out):
+    for wav in wavs:
+      audio.save_wav(wav, debug_out, sr=hparams.sample_rate)
 
-    import wave
-    import pyaudio  
+      import wave
+      import pyaudio  
 
-    chunk = 1024
-    f = wave.open(debug_out, "rb")
-    p = pyaudio.PyAudio()
-    stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
-                channels = f.getnchannels(),  
-                rate = f.getframerate(),  
-                output = True) 
-    data = f.readframes(chunk)
-    while data:  
-      stream.write(data)  
+      chunk = 1024
+      f = wave.open(debug_out, "rb")
+      p = pyaudio.PyAudio()
+      stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
+                  channels = f.getnchannels(),  
+                  rate = f.getframerate(),  
+                  output = True) 
       data = f.readframes(chunk)
-    stream.stop_stream()  
-    stream.close()  
+      while data:  
+        stream.write(data)  
+        data = f.readframes(chunk)
+      stream.stop_stream()  
+      stream.close()  
 
-    #close PyAudio  
-    p.terminate()
+      #close PyAudio  
+      p.terminate()
+  
+  play_wavs(wavs, debug_out)
+
+  import os
+  if os.path.exists(debug_out):
+    os.remove(debug_out)

@@ -13,6 +13,7 @@
 #
 # Usage:
 #   $ python speaker_encoder_train.py model1 -f
+#   $ python speaker_encoder_train.py encoder_model3
 
 from utils.argutils import print_args
 from speaker_encoder.train import train

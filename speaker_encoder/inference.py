@@ -97,6 +97,58 @@ def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_fram
   
   return wav_slices, mel_slices
 
+def embed_utterances(wavs, using_partials=True, return_partials=False, **kwargs):
+  """
+  Works with an arbitrary number of wavs. Reads in all wavs into a
+  giant wav file, computes slices, and then provides them to the 
+  model. 
+  """
+  # Combine the wavs.
+  wav = None
+  for wav_sample in wavs:
+    if wav is None: 
+      wav = wav_sample
+    else:
+      wav = np.concatenate((wav, wav_sample))
+
+  # Process the entire utternace if not using partials (easy to do)
+  if not using_partials:
+    frames = speaker_encoder.audio_utils.wav_to_mel_spectogram(wav)
+    embed = embed_frames_batch(frames[None, ...])[0]
+    if return_partials:
+      return embed, None, None
+    return embed
+  
+  # Otherwise, compute where to split the utterance + pad if necessary. 
+  wave_slices, mel_slices = compute_partial_slices(len(wav), **kwargs)
+  max_wave_length = wave_slices[-1].stop
+
+  print("[INFO] Inference - Computed %d partial slices." % len(mel_slices))
+
+  # If necessary, execute padding.
+  if max_wave_length > len(wav):
+    wav = np.pad(wav, (0, max_wave_length - len(wav)), "constant")
+  
+  # Split the utternace into partials.
+  frames = speaker_encoder.audio_utils.wav_to_mel_spectogram(wav)
+  frames_batch = np.array([frames[s] for s in mel_slices])
+
+  # Submit the frames to the model. 
+  partial_embeds = embed_frames_batch(frames_batch)
+
+  # Compute the utterance embedding from the partials. This is 
+  # more "friendly" to the model, as it was trained this way. 
+  raw_embed = np.mean(partial_embeds, axis=0)
+
+  # Normalize it. 
+  embed = raw_embed / np.linalg.norm(raw_embed, 2)
+
+  print("[INFO] Inference - Final raw embed computed by averaging all %d partial embeds." % len(partial_embeds))
+
+  if return_partials:
+    return embed, partial_embeds, wave_slices
+  return embed
+
 # Computes an embedding given a single wav file. This means we'll
 # need to split it up into different utterances if we're using
 # partials. 

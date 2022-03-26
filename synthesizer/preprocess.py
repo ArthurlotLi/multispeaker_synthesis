@@ -114,6 +114,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool,
       # Iterate through every entry in the alignments file. 
       for wav_fname, words, end_times in alignments:
         wav_fpath = book_dir.joinpath(wav_fname + ".flac")
+        if not wav_fpath.exists():
+          wav_fpath = book_dir.joinpath(wav_fname + ".wav")
         assert wav_fpath.exists()
         # Preprocess the alignment by removing quotations, split on 
         # commas. 

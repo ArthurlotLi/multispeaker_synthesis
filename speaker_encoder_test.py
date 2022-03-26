@@ -7,7 +7,9 @@
 # By default expects the data to be in ./datasets/SV2TTS/encoder_test.
 #
 # Usage:
-# python speaker_encoder_test.py ./saved_models/model1
+# python speaker_encoder_test.py ./production_models/speaker_encoder/model1
+# python speaker_encoder_test.py ./saved_models/encoder_model3
+# python speaker_encoder_test.py ./saved_models/encoder_model3 -d ./datasets/SV2TTS/encoder_test_original
 
 
 from utils.argutils import print_args

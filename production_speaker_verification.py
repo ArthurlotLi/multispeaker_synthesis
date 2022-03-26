@@ -64,8 +64,11 @@ def verify_singular_directory(wavs_fpath, speaker_encoder_fpath, l2_tolerance):
         embeddings_compared += 1
 
     # Average embeddings.
-    combined_norms = combined_norms / embeddings_compared
-    embedding_norms.append((combined_norms, filename, embeds))
+    if embeddings_compared != 0:
+      combined_norms = combined_norms / embeddings_compared
+      embedding_norms.append((combined_norms, filename, embeds))
+    else:
+      embedding_norms.append((0, filename, embeds))
 
   reported_files = []
   report_threshold = l2_tolerance

@@ -15,6 +15,11 @@
 #
 # Usage (test):
 # python synthesizer_preprocess_audio.py ./datasets -o ./datasets/SV2TTS/synthesizer_test --subfolders test-clean,dev-clean
+#
+# Usage (TalesSkits + Librispeech):
+# python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders train,train-clean-100,train-clean-360
+# python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders test,train -o ./datasets/SV2TTS/synthesizer_test
+# python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders test,test-clean -o ./datasets/SV2TTS/synthesizer_test
 
 
 from synthesizer.preprocess import preprocess_dataset
