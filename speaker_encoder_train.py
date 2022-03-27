@@ -14,6 +14,7 @@
 # Usage:
 #   $ python speaker_encoder_train.py model1 -f
 #   $ python speaker_encoder_train.py encoder_model3
+#   $ python speaker_encoder_train.py encoder_model5 -b 5 -d ./datasets/SV2TTS/encoder_tales
 
 from utils.argutils import print_args
 from speaker_encoder.train import train

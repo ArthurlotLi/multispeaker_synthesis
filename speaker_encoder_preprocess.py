@@ -28,6 +28,9 @@
 # Usage (Dev):
 # python speaker_encoder_preprocess.py ./datasets -d librispeech_dev -o ./datasets/SV2TTS/encoder_dev/ -s
 #
+# Usage (Train Clean):
+# python speaker_encoder_preprocess.py ./datasets -d librispeech_clean -o ./datasets/SV2TTS/encoder_clean/ -s
+#
 # TalesSkits Usage:
 # Train: python speaker_encoder_preprocess.py ./datasets -d talesskits_train
 # Test: python speaker_encoder_preprocess.py ./datasets -d talesskits_test -o ./datasets/SV2TTS/encoder_test/ -s
@@ -39,7 +42,7 @@
 
 from speaker_encoder.preprocess import preprocess_librispeech,preprocess_voxceleb1, preprocess_voxceleb2
 from speaker_encoder.preprocess import preprocess_test_librispeech, preprocess_test_voxceleb1, preprocess_test_voxceleb2 
-from speaker_encoder.preprocess import preprocess_dev_librispeech, preprocess_train_talesskits, preprocess_test_talesskits
+from speaker_encoder.preprocess import preprocess_dev_librispeech, preprocess_train_talesskits, preprocess_test_talesskits, preprocess_librispeech_clean
 from utils.argutils import print_args
 
 from pathlib import Path
@@ -106,6 +109,7 @@ if __name__ == "__main__":
     "voxceleb1_test": preprocess_test_voxceleb1,
     "voxceleb2_test": preprocess_test_voxceleb2,
     "librispeech_dev": preprocess_dev_librispeech,
+    "librispeech_clean" : preprocess_librispeech_clean,
     "talesskits_train": preprocess_train_talesskits,
     "talesskits_test": preprocess_test_talesskits
   }

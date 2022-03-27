@@ -164,11 +164,12 @@ class MultispeakerSynthesis:
 
 
 # Debug only. Example usage:
-# python production_inference.py "How are you today?"
+# python production_inference.py "How are you today?" ELEANOR
 if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser()
   parser.add_argument("text_to_speak")
+  parser.add_argument("speaker")
   args = parser.parse_args()
 
   model_num = "model1"
@@ -177,7 +178,7 @@ if __name__ == "__main__":
   synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/" + synthesizer_name + ".pt")
   speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
 
-  embeds_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/ELEANOR.npy")
+  embeds_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/"+ args.speaker+ ".npy")
 
   text_to_speak = [args.text_to_speak]
   split_sentence_re = r'[\.|!|,|\?|:|;|-] '

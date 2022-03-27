@@ -335,6 +335,17 @@ def preprocess_dev_librispeech(datasets_root: Path, out_dir: Path, skip_existing
     speaker_dirs = list(dataset_root.glob("*"))
     _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
 
+# Supplemental data to test with. 
+def preprocess_librispeech_clean(datasets_root: Path, out_dir: Path, skip_existing = False):
+  for dataset_name in librispeech_datasets["train"]["clean"]:
+    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+    if not dataset_root:
+      return # We've already logged the error.
+    
+    # Go through all the speakers. 
+    speaker_dirs = list(dataset_root.glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)
+
 # TalesSkits Preprocessing - Test and Train
 
 def preprocess_train_talesskits(datasets_root: Path, out_dir: Path, skip_existing = False):

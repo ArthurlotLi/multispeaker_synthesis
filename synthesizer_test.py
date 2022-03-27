@@ -7,7 +7,7 @@
 # By default expects the data to be in ./datasets/SV2TTS/synthesizer_test.
 #
 # Usage:
-# python synthesizer_test.py ./saved_models/model1
+# python synthesizer_test.py ./saved_models/synthesizer_model1
 # python synthesizer_test.py ./production_models/synthesizer/model1
 
 

@@ -1,0 +1,5 @@
+================================================
+Multispeaker Synthesis - Synthesizer Test Results
+================================================
+
+0.48516041 - synthesizer.pt

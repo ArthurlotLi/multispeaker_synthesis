@@ -19,7 +19,7 @@ model_num_layers = 3
 
 # Training Parameters
 #learning_rate_init = 1e-4 
-learning_rate_init = 0.000001
+learning_rate_init = 0.00001
 #learning_rate_init = 0.00001
 
 model_similarity_weight_grad_modifier = 0.01
