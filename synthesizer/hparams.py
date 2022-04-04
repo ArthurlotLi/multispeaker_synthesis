@@ -16,7 +16,7 @@ class HParams(object):
   
 # Default hparams.
 
-_hparams_tts_schedule_batch_size = 32 # Consistent batch size for all schedules. 
+_hparams_tts_schedule_batch_size = 64 # Consistent batch size for all schedules. 
 
 hparams = HParams(
   # Signal Processing (Used in both synthesizer and vocoder)

@@ -1,0 +1,17 @@
+================================================
+Multispeaker Synthesis - Synthesizer Test Results
+================================================
+
+0.32418210 - synthesizer_0.2763_187900.pt
+0.32456566 - synthesizer_0.2806_168800.pt
+0.32463558 - synthesizer_0.2789_162700.pt
+0.32601181 - synthesizer_0.2806_187800.pt
+0.32624141 - synthesizer_0.2759_177400.pt
+0.32627884 - synthesizer_0.2825_161200.pt
+0.32681313 - synthesizer_0.2784_169500.pt
+0.32781612 - synthesizer_0.2824_122200.pt
+0.32787769 - synthesizer_0.2882_121900.pt
+0.32797538 - synthesizer_0.2875_129200.pt
+0.32870201 - synthesizer_0.2841_153600.pt
+0.32877895 - synthesizer_0.2837_133100.pt
+0.32882632 - synthesizer_0.2790_175200.pt

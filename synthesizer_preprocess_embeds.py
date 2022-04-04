@@ -15,7 +15,7 @@
 #
 # LibriSpeech: https://www.openslr.org/12/
 #
-# By default, uses model1 located in production_models.
+# By default, uses model6 located in production_models.
 #
 # Usage (train): 
 # python synthesizer_preprocess_embeds.py
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     "Path to the synthesizer training data that contains the audios and the train.txt file. "
     "If you let everything as default, it should be <datasets_root>/SV2TTS/synthesizer/.")
   parser.add_argument("-e", "--encoder_model_fpath", type=Path,
-                      default="./production_models/speaker_encoder/model1/encoder.pt", help=\
+                      default="./production_models/speaker_encoder/model6/encoder.pt", help=\
     "Path your trained encoder model.")
   parser.add_argument("-n", "--n_processes", type=int, default=10, help= \
     "Number of parallel processes. An encoder is created for each, so you may need to lower "

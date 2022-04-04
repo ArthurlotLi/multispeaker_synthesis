@@ -120,6 +120,12 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool,
         # Preprocess the alignment by removing quotations, split on 
         # commas. 
         words = words.replace("\"", "").split(",")
+        # Small catch for a common OCR error in TalesSkits data. 
+        for i in range(0, len(words)):
+          item = words[i]
+          if len(item) > 0:
+            if item[0] == "'":
+              words[i] = item[1:]
         end_times = list(map(float, end_times.replace("\"", "").split(",")))
 
         # Process each sub-utterance; split on silences + process

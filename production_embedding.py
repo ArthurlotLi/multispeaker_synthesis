@@ -97,12 +97,11 @@ class Embedding:
 
 # Debug usage. 
 if __name__ == "__main__":
-  """
   parser = argparse.ArgumentParser()
   parser.add_argument("wav_fpath")
   args = parser.parse_args()
 
-  speaker_encoder_fpath = Path("./production_models/speaker_encoder/model1/encoder.pt")
+  speaker_encoder_fpath = Path("./production_models/speaker_encoder/model6/encoder.pt")
 
   wav_fpath = args.wav_fpath
 
@@ -114,7 +113,8 @@ if __name__ == "__main__":
   parser.add_argument("parent_directory")
   args = parser.parse_args()
 
-  speaker_encoder_fpath = Path("./production_models/speaker_encoder/model1/encoder.pt")
+  speaker_encoder_fpath = Path("./production_models/speaker_encoder/model6/encoder.pt")
 
   embedding = Embedding(speaker_encoder_fpath)
   embedding.generate_subdirectory_embeds(args.parent_directory)
+  """

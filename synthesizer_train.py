@@ -8,7 +8,7 @@
 # configuration. 
 #
 # Usage:
-# python synthesizer_train.py model1 
+# python synthesizer_train.py model6
 
 from pathlib import Path
 

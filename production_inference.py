@@ -172,13 +172,17 @@ if __name__ == "__main__":
   parser.add_argument("speaker")
   args = parser.parse_args()
 
-  model_num = "model1"
-  synthesizer_name = "synthesizer"
+  model_num = "model6"
+  #model_num_synthesizer = "model6_edna"
+  #model_num_synthesizer = "model6_velvet"
+  model_num_synthesizer = "model6"
 
-  synthesizer_fpath = Path("./production_models/synthesizer/"+model_num+"/" + synthesizer_name + ".pt")
+  synthesizer_fpath = Path("./production_models/synthesizer/"+model_num_synthesizer+"/synthesizer.pt")
   speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
 
-  embeds_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/"+ args.speaker+ ".npy")
+  #embeds_fpath = Path("../kotakee_companion/assets_audio/multispeaker_synthesis_speakers/"+ args.speaker+ ".npy")
+  embeds_fpath = Path("../multispeaker_synthesis_speakers/"+ args.speaker+ ".npy")
+  #embeds_fpath = Path("../multispeaker_synthesis_speakers_verified/test/"+ args.speaker+ "/"+args.emotion + ".npy")
 
   text_to_speak = [args.text_to_speak]
   split_sentence_re = r'[\.|!|,|\?|:|;|-] '

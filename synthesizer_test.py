@@ -9,6 +9,7 @@
 # Usage:
 # python synthesizer_test.py ./saved_models/synthesizer_model1
 # python synthesizer_test.py ./production_models/synthesizer/model1
+# python synthesizer_test.py ./production_models/synthesizer/model6 -d ./datasets/SV2TTS/synthesizer_test
 
 
 from utils.argutils import print_args

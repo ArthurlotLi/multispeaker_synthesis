@@ -50,7 +50,7 @@ _num_dataloader_workers = 1 # Data loading is SUPER fast.
 #   synthesizer_<loss>_<step>.pt
 #   Ex) synthesizer_0.2816_044400.pt
 def batch_test(model_batch_dir: Path, clean_data_root: Path, 
-               test_report_dir: Path, use_cpu: bool):
+               test_report_dir: Path, use_cpu: bool, output_name = None):
   print("[INFO] Test - Initializing batch test.")
 
   filename_uid = 0
@@ -138,7 +138,7 @@ def batch_test(model_batch_dir: Path, clean_data_root: Path,
   chain_test_results_acc_map = dict(sorted(chain_test_results_acc_map.items(), key=lambda item: item[0]))
 
   # With the results, write to file. 
-  _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index) 
+  _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index, output_name) 
 
 
 # Evaluate a model, given the location of the model, and the batch.
@@ -213,13 +213,16 @@ def _test_model_worker(model_location, dataset, device, verbose=True):
   return total_loss
 
 # Writes results of batch testing to file. 
-def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index):
+def _write_batch_results(test_report_dir, chain_test_results, chain_test_results_acc_map, result_index, output_name = None):
   try:
     filename = test_report_dir.joinpath(_file_name_prefix + str(result_index) + _file_name_suffix)
     print("\n[INFO] Test - Chain test complete. Writing results to file '%s'..." % filename)
     f = open(filename, "w")
 
-    f.write("================================================\nMultispeaker Synthesis - Synthesizer Test Results\n================================================\n\n")
+    if output_name is not None:
+      f.write("================================================\nMultispeaker Synthesis - Synthesizer Test Results (%s)\n================================================\n\n" % output_name)
+    else:
+      f.write("================================================\nMultispeaker Synthesis - Synthesizer Test Results\n================================================\n\n")
     # Write results of each model, sorted.
     for key in chain_test_results_acc_map:
       f.write(chain_test_results[chain_test_results_acc_map[key]])
