@@ -9,9 +9,6 @@ from synthesizer.inference import *
 
 import time
 import re
-from multiprocessing import Pool
-from functools import partial
-from tqdm import tqdm
 
 class MultispeakerSynthesis:
   synthesizer = None
@@ -21,7 +18,7 @@ class MultispeakerSynthesis:
   # a greater number than max samples, we'll be splitting into small
   # minibatches of the specified size so we don't run into VRAM or
   # RAM issues. 
-  longest_max_chars = 200
+  longest_max_chars = 300
 
   # Number of processes for griffin lim parallel processing. 
   griffin_lim_num_processes = 1
@@ -175,6 +172,7 @@ if __name__ == "__main__":
   model_num = "model6"
   #model_num_synthesizer = "model6_edna"
   #model_num_synthesizer = "model6_velvet"
+  #model_num_synthesizer = "model6_eleanor"
   model_num_synthesizer = "model6"
 
   synthesizer_fpath = Path("./production_models/synthesizer/"+model_num_synthesizer+"/synthesizer.pt")
