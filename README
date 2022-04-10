@@ -52,11 +52,16 @@ Usage:
 To use MultispeakerSynthesis, you need to make sure you do some manual 
 steps to allow your local environment to function correctly.
 
-1. Install everything required by MultispeakerSynthesis. Run:
+1. Install pyaudio dependencies. Run:
+
+   pip install pipwin
+   pipwin install pyaudio
+
+2. Install everything required by MultispeakerSynthesis. Run:
 
    pip install -r requirements.txt 
 
-2. Install FFmpeg. The pip installation won't set the cli tool, so you
+3. Install FFmpeg. The pip installation won't set the cli tool, so you
    need to install from here:
 
    https://ffmpeg.org/
