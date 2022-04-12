@@ -16,6 +16,9 @@ import argparse
 import shutil
 import os
 
+#_original_format = ".m4a"
+_original_format = ".mp3"
+
 # Allows shutil to ingnore all files.
 def ig_f(dir, files):
   return [f for f in files if (os.path.isfile(os.path.join(dir, f)))] #and not os.path.join(dir, f).endswith(".m4a"))]
@@ -41,8 +44,8 @@ if __name__ == "__main__":
     for name in files:
       # Given a file like "../datasets/test_aac/6gecvwZYs-o/00024.m4a"
       full_path = os.path.join(root, name)
-      if not full_path.endswith(".m4a"):
-        print("[WARNING] Encountered non-m4a file: %s. Skipping..." % full_path)
+      if not full_path.endswith(_original_format):
+        print("[WARNING] Encountered non-%s file: %s. Skipping..." % (_original_format, full_path))
         non_m4a_files += 1
       else:
         if(original_directory in full_path):
@@ -53,14 +56,15 @@ if __name__ == "__main__":
         # In case we have a frankenstein of / and \. 
         full_path = os.path.normpath(full_path)
         new_path = os.path.normpath(new_path)
-        new_path = new_path.replace(".m4a", ".wav")
+        new_path = new_path.replace(_original_format, ".wav")
 
         # Execute the conversion.
-        print("Converting m4a file: %s --> %s" % (full_path, new_path))
-        command = "ffmpeg -i " + full_path + " " + new_path
+        print("Converting %s file: %s --> %s" % (_original_format, full_path, new_path))
+        command = "ffmpeg -strict -2 -i \"" + full_path + "\" \"" + new_path + "\""
         os.system(command)
         m4a_files += 1
       
 
   # Step 3: Profit.
-  print("\n[INFO] m4a to wav file conversion complete! \n  m4a files converted: %d \n  Non-m4a files skipped: %d" % (m4a_files, non_m4a_files))
+  print("\n[INFO] %s to wav file conversion complete! \n  %s files converted: %d \n  Non-%s files skipped: %d" 
+    % (_original_format,_original_format, m4a_files, _original_format, non_m4a_files))

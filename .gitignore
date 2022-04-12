@@ -10,4 +10,6 @@
 debug_model1.wav
 debug_pretrained.wav
 
+/vocoder/WaveRNN
+
 /production_models/synthesizer

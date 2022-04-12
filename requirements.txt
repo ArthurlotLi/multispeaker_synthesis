@@ -9,3 +9,5 @@ visdom
 lws
 inflect
 unidecode
+
+matplotlib

@@ -6,6 +6,8 @@
 # given wav file(s) and input text and the appropriate model fpaths. 
 
 from synthesizer.inference import *
+#from vocoder.wavernn_inference import WaveRNNBridge
+from vocoder.sv2tts_inference import SV2TTSBridge
 
 import time
 import re
@@ -36,6 +38,9 @@ class MultispeakerSynthesis:
                                verbose=verbose,
                                load_immediately=load_immediately)
     
+    #self.vocoder = WaveRNNBridge(load_immediately=load_immediately)
+    self.sv2tts = SV2TTSBridge(load_immediately=load_immediately)
+
     if speaker_encoder_fpath is not None and load_immediately:
       self._load_embedding()
 
@@ -97,7 +102,8 @@ class MultispeakerSynthesis:
   # speaker embedding, loads the embedding and generates a mel 
   # spectogram. 
   def synthesize_audio_from_embeds(self, texts: List[str],
-                                   embeds_fpath: Path):
+                                   embeds_fpath: Path, 
+                                   vocoder = "griffinlim"):
     embeds = np.load(embeds_fpath)
 
     # Append texts into minibatches with a maximum char limit. 
@@ -136,23 +142,31 @@ class MultispeakerSynthesis:
 
     print("[DEBUG] Multispeaker Synthesis - Synthesis completed %.4f seconds." % (time.time() - start_time))
 
-    return self.vocode_mels(total_mels)
+    return self.vocode_mels(total_mels, vocoder = vocoder)
 
-  # Given mels, provides audio wav. 
-  def vocode_mels(self, mels):
-    print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to Griffin Lim.")
+  def vocode_mels(self, mels, vocoder):
+    """
+    Given mels, provides audio wav. This can be done with either the
+    Griffin Lim vocoder or the WaveRNN vocoder, specified by a string
+    argument. 
+    """
     start_time = time.time()
-    """
-    func = partial(audio.inv_mel_spectogram, hparams = hparams)
-    job = Pool(self.griffin_lim_num_processes).imap(func, mels)
-    wavs = list(tqdm(job, "Griffin Lim Vocoding", len(mels), unit="mel"))
-    """
-    # For some reason, griffin lim works better without parallelization. 
-    # TODO: Use a better vocoder dangit! 
     wavs = []
-    for mel in mels:
-      wavs.append(audio.inv_mel_spectogram(mel, hparams))
-    print("[DEBUG] Multispeaker Synthesis - Griffin Lim completed %.4f seconds." % (time.time() - start_time))
+    #if vocoder == "wavernn":
+      #print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to WaveRNN.")
+      #wavs = self.vocoder.wavernn(mels)
+      #print("[DEBUG] Multispeaker Synthesis - WaveRNN completed %.4f seconds." % (time.time() - start_time))
+    if vocoder == "sv2tts":
+      print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to SV2TTS Vocoder.")
+      wavs = self.sv2tts.sv2tts(mels)
+      print("[DEBUG] Multispeaker Synthesis - SV2TTS Vocoder completed %.4f seconds." % (time.time() - start_time))
+    elif vocoder == "griffinlim":
+      print("[DEBUG] Multispeaker Synthesis - Submitting mel spectrograms to Griffin Lim.")
+      for mel in mels:
+        wavs.append(audio.inv_mel_spectogram(mel, hparams))
+      print("[DEBUG] Multispeaker Synthesis - Griffin Lim completed %.4f seconds." % (time.time() - start_time))
+    else:
+      assert False # No good very bad day.
     return wavs
   
   # Expose this for users. 
@@ -174,6 +188,9 @@ if __name__ == "__main__":
   #model_num_synthesizer = "model6_velvet"
   #model_num_synthesizer = "model6_eleanor"
   model_num_synthesizer = "model6"
+
+  vocoder = "sv2tts"
+  #vocoder = "griffinlim"
 
   synthesizer_fpath = Path("./production_models/synthesizer/"+model_num_synthesizer+"/synthesizer.pt")
   speaker_encoder_fpath = Path("./production_models/speaker_encoder/"+model_num+"/encoder.pt")
@@ -198,7 +215,8 @@ if __name__ == "__main__":
 
   multispeaker_synthesis = MultispeakerSynthesis(synthesizer_fpath=synthesizer_fpath,
                                                  speaker_encoder_fpath=speaker_encoder_fpath)
-  wavs = multispeaker_synthesis.synthesize_audio_from_embeds(texts = processed_texts, embeds_fpath = embeds_fpath)
+  wavs = multispeaker_synthesis.synthesize_audio_from_embeds(texts = processed_texts, embeds_fpath = embeds_fpath, 
+                                                             vocoder = vocoder)
 
   def play_wavs(wavs, debug_out):
     for wav in wavs:

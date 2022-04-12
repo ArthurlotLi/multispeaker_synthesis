@@ -48,8 +48,8 @@ _output_wavs = False
 _temp_folder_name = "temp"
 _n_processes = 10
 _use_multiprocessing = True
-_minimum_samples = 5 # Under this amount, we'll up the L2 tolerance. 
-_minimum_samples_l2_additional = 0.5 # Accept A LOT MORE samples.
+_minimum_samples = 2 # Under this amount, we'll up the L2 tolerance. 
+_minimum_samples_l2_additional = 0.1 # Accept A LOT MORE samples.
 
 def embed_speakers(full_data_dir:Path, encoder_fpath: Path, 
                    l2_tolerance: float, target_wavs: bool):
