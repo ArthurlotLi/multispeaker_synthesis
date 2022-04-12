@@ -53,7 +53,8 @@ class MultispeakerSynthesis:
   # Synthesizes audio given text + location of wav file to load.
   # Optionally may use Griffin Lim as the vocoder.  
   def synthesize_audio_from_audio(self, texts: List[str], 
-                                  wav_fpath: Path):
+                                  wav_fpath: Path,
+                                  vocoder = "griffinlim"):
     if self.embedding is None:
       self._load_embedding()
 
@@ -95,7 +96,7 @@ class MultispeakerSynthesis:
 
     print("[DEBUG] Multispeaker Synthesis - Synthesis completed %.4f seconds." % (time.time() - start_time))
 
-    return self.vocode_mels(total_mels)
+    return self.vocode_mels(total_mels, vocoder)
 
 
   # Given texts to generate mels from as well as the fpath to the
