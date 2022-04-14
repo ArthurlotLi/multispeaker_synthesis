@@ -42,7 +42,6 @@ class SV2TTSBridge:
     #wavs = list(tqdm(job, "SV2TTS Vocoding", len(mels), unit="wavs"))
 
     # Combine all the mels by appending them, allowing for far better batch work.
-    """
     separated_mels = []
     min_mel_value = 9999
     for mel in mels:
@@ -56,9 +55,8 @@ class SV2TTSBridge:
       if self._add_silences and i < len(mels):
         separated_mels.append(np.full(shape=(mel.shape[0], self._silence_spaces), fill_value=min_mel_value))
     combined_mels = np.hstack(separated_mels)
-    """
 
-    combined_mels = np.concatenate(mels, axis=1)
+    #combined_mels = np.concatenate(mels, axis=1)
     waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap)
     #waveform = denormalize(waveform)
     wavs.append(waveform)
