@@ -42,5 +42,5 @@ voc_seq_len = hop_length * 5        # must be a multiple of hop_length
 voc_gen_batched = True              # very fast (realtime+) single utterance batched generation
 # Original was 8000/400. 2000/100 is an acceptable trade-off
 # of quality and speed for my needs. 
-voc_target = 4000                   # target number of samples to be generated in each batch entry
+voc_target = 2000                   # target number of samples to be generated in each batch entry
 voc_overlap = 100                   # number of samples for crossfading between batches
