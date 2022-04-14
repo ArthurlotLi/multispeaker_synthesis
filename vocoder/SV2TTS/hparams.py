@@ -31,14 +31,16 @@ voc_res_out_dims = 128
 voc_res_blocks = 10
 
 # Training
-voc_batch_size = 100
-voc_lr = 1e-4
-voc_gen_at_checkpoint = 5           # number of samples to generate at each checkpoint
+voc_batch_size = 240
+voc_lr = 0.0002
+voc_gen_at_checkpoint = 1          # number of samples to generate at each checkpoint
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider 
                                     # than input length
 voc_seq_len = hop_length * 5        # must be a multiple of hop_length
 
 # Generating / Synthesizing
 voc_gen_batched = True              # very fast (realtime+) single utterance batched generation
-voc_target = 8000                   # target number of samples to be generated in each batch entry
-voc_overlap = 400                   # number of samples for crossfading between batches
+# Original was 8000/400. 2000/100 is an acceptable trade-off
+# of quality and speed for my needs. 
+voc_target = 4000                   # target number of samples to be generated in each batch entry
+voc_overlap = 100                   # number of samples for crossfading between batches

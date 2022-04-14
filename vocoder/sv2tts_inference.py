@@ -16,12 +16,14 @@ import sys
 from pathlib import Path
 
 class SV2TTSBridge: 
-  _weights_fpath = "./SV2TTS/pretrained/vocoder.pt"
+  _weights_fpath = "../production_models/vocoder/model6/vocoder.pt"
+  #_weights_fpath = "./SV2TTS/pretrained/vocoder.pt"
   _num_workers = 10
-  _target = 4000
-  _overlap = 150
+  _target = 2000
+  _overlap = 100
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 10
+  _add_silences = True
 
   def __init__(self, load_immediately=True):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
@@ -49,7 +51,7 @@ class SV2TTSBridge:
       separated_mels.append(mel)
       #print(mel)
       #input()
-      if i < len(mels):
+      if self._add_silences and i < len(mels):
         separated_mels.append(np.full(shape=(mel.shape[0], self._silence_spaces), fill_value=min_mel_value))
     combined_mels = np.hstack(separated_mels)
     wavs.append(infer_waveform(combined_mels, target=self._target, overlap=self._overlap))

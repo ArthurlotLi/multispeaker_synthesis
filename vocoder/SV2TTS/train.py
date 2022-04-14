@@ -71,7 +71,7 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
                   ('LR', hp.voc_lr),
                   ('Sequence Len', hp.voc_seq_len)])
 
-    for epoch in range(1, 350):
+    for epoch in range(1, 1000):
         data_loader = DataLoader(dataset, hp.voc_batch_size, shuffle=True, num_workers=2, collate_fn=collate_vocoder)
         start = time.time()
         running_loss = 0.
@@ -101,11 +101,9 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
             step = model.get_step()
             k = step // 1000
 
-            if backup_every != 0 and step % backup_every == 0 :
-                model.checkpoint(model_dir, optimizer)
-
-            if save_every != 0 and step % save_every == 0 :
-                model.save(weights_fpath, optimizer)
+            if (save_every != 0 and step % save_every == 0) or backup_every != 0 and step % backup_every == 0 :
+                backup_name = model_dir.joinpath(f"vocoder_{avg_loss:.4f}_{k:06d}.pt")
+                model.save(backup_name, optimizer)
 
             msg = f"| Epoch: {epoch} ({i}/{len(data_loader)}) | " \
                 f"Loss: {avg_loss:.4f} | {speed:.1f} " \
@@ -113,6 +111,6 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
             stream(msg)
 
 
-        gen_testset(model, test_loader, hp.voc_gen_at_checkpoint, hp.voc_gen_batched,
-                    hp.voc_target, hp.voc_overlap, model_dir)
-        print("")
+        #gen_testset(model, test_loader, hp.voc_gen_at_checkpoint, hp.voc_gen_batched,
+        #            hp.voc_target, hp.voc_overlap, model_dir)
+        #print("")

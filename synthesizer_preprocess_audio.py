@@ -21,6 +21,9 @@
 # python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders test,train -o ./datasets/SV2TTS/synthesizer_test
 # python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders test,test-clean -o ./datasets/SV2TTS/synthesizer_test
 # python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders test -o ./datasets/SV2TTS/synthesizer_test
+#
+# python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders train
+# python synthesizer_preprocess_audio.py ./datasets --datasets_name TalesSkits --subfolders train,train-clean-100
 
 
 from synthesizer.preprocess import preprocess_dataset
