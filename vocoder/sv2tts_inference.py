@@ -8,6 +8,8 @@
 from vocoder.SV2TTS.inference import *
 from vocoder.SV2TTS.hparams import *
 from vocoder.SV2TTS.audio import *
+from speaker_encoder.audio_utils import normalize_volume
+from speaker_encoder.audio_params import *
 
 from multiprocessing import Pool
 from functools import partial
@@ -62,7 +64,11 @@ class SV2TTSBridge:
 
     #combined_mels = np.concatenate(mels, axis=1)
     waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap, normalize = False)
-    #waveform = denormalize(waveform)
+
+    # Normalize the loudness of the result to offset some model 
+    # wonkiness. 
+    normalize_volume(waveform, audio_norm_target_dBFS)
+    
     wavs.append(waveform)
 
     return wavs
