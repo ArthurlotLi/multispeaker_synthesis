@@ -223,6 +223,15 @@ if __name__ == "__main__":
     for wav in wavs:
       audio.save_wav(wav, debug_out, sr=hparams.sample_rate)
 
+      from pydub import AudioSegment
+
+      # Normalize the audio. Not the best code, but it works in ~0.007 seconds.
+      wav_suffix = debug_out.rsplit(".", 1)[1]
+      sound = AudioSegment.from_file(debug_out, wav_suffix)
+      change_in_dBFS = -12.0 - sound.dBFS
+      normalized_sound = sound.apply_gain(change_in_dBFS)
+      normalized_sound.export(debug_out, format=wav_suffix)
+
       import wave
       import pyaudio  
 

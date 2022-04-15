@@ -17,6 +17,7 @@ from tqdm import tqdm
 import numpy as np
 import sys
 from pathlib import Path
+from pydub import AudioSegment, effects
 
 class SV2TTSBridge: 
   _weights_fpath = "../production_models/vocoder/model6/vocoder.pt"
@@ -27,7 +28,7 @@ class SV2TTSBridge:
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 10
   _add_silences = False
-  _norm_target_dBFS = -5 # Everything on TV is between -12 and -20.
+  _norm_target_dBFS = -3 # Everything on TV is between -12 and -20.
  
   def __init__(self, load_immediately=True):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
@@ -65,11 +66,6 @@ class SV2TTSBridge:
 
     #combined_mels = np.concatenate(mels, axis=1)
     waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap, normalize = False)
-
-    # Normalize the loudness of the result to offset some model 
-    # wonkiness. 
-    waveform = normalize_volume(waveform, self._norm_target_dBFS)
-    
     wavs.append(waveform)
 
     return wavs
