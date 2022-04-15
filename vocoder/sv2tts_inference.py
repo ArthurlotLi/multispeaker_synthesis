@@ -27,7 +27,8 @@ class SV2TTSBridge:
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 10
   _add_silences = False
-
+  _norm_target_dBFS = -12 # Everything on TV is between -12 and -20.
+ 
   def __init__(self, load_immediately=True):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
     if load_immediately:
@@ -67,7 +68,7 @@ class SV2TTSBridge:
 
     # Normalize the loudness of the result to offset some model 
     # wonkiness. 
-    normalize_volume(waveform, audio_norm_target_dBFS)
+    normalize_volume(waveform, self._norm_target_dBFS)
     
     wavs.append(waveform)
 
