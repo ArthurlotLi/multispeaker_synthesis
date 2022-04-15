@@ -68,7 +68,7 @@ class SV2TTSBridge:
 
     # Normalize the loudness of the result to offset some model 
     # wonkiness. 
-    normalize_volume(waveform, self._norm_target_dBFS)
+    waveform = normalize_volume(waveform, self._norm_target_dBFS)
     
     wavs.append(waveform)
 
