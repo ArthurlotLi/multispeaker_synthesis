@@ -17,14 +17,14 @@ import sys
 from pathlib import Path
 
 class SV2TTSBridge: 
-  #_weights_fpath = "../production_models/vocoder/model6/vocoder.pt"
-  _weights_fpath = "./SV2TTS/pretrained/vocoder.pt"
+  _weights_fpath = "../production_models/vocoder/model6/vocoder.pt"
+  #_weights_fpath = "./SV2TTS/pretrained/vocoder.pt"
   _num_workers = 10
   _target = 2000
   _overlap = 100
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 10
-  _add_silences = True
+  _add_silences = False
 
   def __init__(self, load_immediately=True):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
@@ -42,22 +42,26 @@ class SV2TTSBridge:
     #wavs = list(tqdm(job, "SV2TTS Vocoding", len(mels), unit="wavs"))
 
     # Combine all the mels by appending them, allowing for far better batch work.
+    normed_mels = []
+    for mel in mels:
+      normed_mels.append(mel / hp.mel_max_abs_value)
+
     separated_mels = []
     min_mel_value = 9999
-    for mel in mels:
+    for mel in normed_mels:
       min_mel_value = min(min_mel_value, np.min(mel))
 
-    for i in range(0, len(mels)):
-      mel = mels[i]
+    for i in range(0, len(normed_mels)):
+      mel = normed_mels[i]
       separated_mels.append(mel)
       #print(mel)
       #input()
-      if self._add_silences and i < len(mels):
+      if self._add_silences and i < len(normed_mels):
         separated_mels.append(np.full(shape=(mel.shape[0], self._silence_spaces), fill_value=min_mel_value))
     combined_mels = np.hstack(separated_mels)
 
     #combined_mels = np.concatenate(mels, axis=1)
-    waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap)
+    waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap, normalize = False)
     #waveform = denormalize(waveform)
     wavs.append(waveform)
 

@@ -31,12 +31,14 @@ voc_res_out_dims = 128
 voc_res_blocks = 10
 
 # Training
-voc_batch_size = 240
-voc_lr = 0.0002
+voc_batch_size = 360
+voc_lr = 0.0001
 voc_gen_at_checkpoint = 1          # number of samples to generate at each checkpoint
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider 
                                     # than input length
 voc_seq_len = hop_length * 5        # must be a multiple of hop_length
+voc_dataloaders = 3
+voc_epochs = 1200
 
 # Generating / Synthesizing
 voc_gen_batched = True              # very fast (realtime+) single utterance batched generation

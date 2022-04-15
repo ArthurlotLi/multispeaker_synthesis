@@ -71,10 +71,16 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
                   ('LR', hp.voc_lr),
                   ('Sequence Len', hp.voc_seq_len)])
 
-    for epoch in range(1, 1000):
-        data_loader = DataLoader(dataset, hp.voc_batch_size, shuffle=True, num_workers=2, collate_fn=collate_vocoder)
+    for epoch in range(1, hp.voc_epochs):
         start = time.time()
         running_loss = 0.
+
+        data_loader = DataLoader(
+            dataset, 
+            hp.voc_batch_size, 
+            shuffle=True, 
+            num_workers=hp.voc_dataloaders, 
+            collate_fn=collate_vocoder)
 
         for i, (x, y, m) in enumerate(data_loader, 1):
             if torch.cuda.is_available():
@@ -102,7 +108,7 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
             k = step // 1000
 
             if (save_every != 0 and step % save_every == 0) or backup_every != 0 and step % backup_every == 0 :
-                backup_name = model_dir.joinpath(f"vocoder_{avg_loss:.4f}_{k:06d}.pt")
+                backup_name = model_dir.joinpath(f"vocoder_{avg_loss:.4f}_{step:08d}.pt")
                 model.save(backup_name, optimizer)
 
             msg = f"| Epoch: {epoch} ({i}/{len(data_loader)}) | " \
