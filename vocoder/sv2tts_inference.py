@@ -19,7 +19,7 @@ class SV2TTSBridge:
   _overlap = 100
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 5
-  _add_silences = True
+  _add_silences = False
  
   def __init__(self, load_immediately=True):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
