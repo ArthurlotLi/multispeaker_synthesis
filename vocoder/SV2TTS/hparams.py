@@ -38,7 +38,7 @@ voc_pad = 2                         # this will pad the input so that the resnet
                                     # than input length
 voc_seq_len = hop_length * 5        # must be a multiple of hop_length
 voc_dataloaders = 3
-voc_epochs = 1200
+voc_epochs = 700
 
 # Generating / Synthesizing
 voc_gen_batched = True              # very fast (realtime+) single utterance batched generation

@@ -31,11 +31,12 @@ def load_model(weights_fpath, verbose=True):
     else:
         _device = torch.device('cpu')
     
-    if verbose:
-        print("Loading model weights at %s" % weights_fpath)
     checkpoint = torch.load(weights_fpath, _device)
     _model.load_state_dict(checkpoint['model_state'])
     _model.eval()
+
+    if verbose:
+        print("[INFO] Vocoder Inference - Loaded vocoder model trained to step %d." % (_model.state_dict()["step"]))
 
 
 def is_loaded():
