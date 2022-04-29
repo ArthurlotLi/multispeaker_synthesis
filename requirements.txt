@@ -1,3 +1,7 @@
+numpy
+pandas
+pydub
+
 # Speaker Encoder
 webrtcvad # audio_utils
 librosa # audio_utils
