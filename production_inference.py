@@ -29,7 +29,8 @@ class MultispeakerSynthesis:
   # If the encoder path is provided and load_immediately is true,
   # then we will load the encoder as well. 
   def __init__(self, synthesizer_fpath, speaker_encoder_fpath = None,
-               verbose=True, load_immediately=True):
+               verbose=True, load_immediately=True, 
+               target= None, overlap = None, batched = None):
     self.speaker_encoder_fpath = speaker_encoder_fpath
     self.synthesizer_fpath = synthesizer_fpath
     self.verbose = verbose
@@ -39,7 +40,8 @@ class MultispeakerSynthesis:
                                load_immediately=load_immediately)
     
     #self.vocoder = WaveRNNBridge(load_immediately=load_immediately)
-    self.sv2tts = SV2TTSBridge(load_immediately=load_immediately)
+    self.sv2tts = SV2TTSBridge(load_immediately=load_immediately, 
+      target=target, overlap=overlap, batched=batched)
 
     if speaker_encoder_fpath is not None and load_immediately:
       self._load_embedding()

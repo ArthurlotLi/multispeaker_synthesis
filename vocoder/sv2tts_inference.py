@@ -17,14 +17,24 @@ class SV2TTSBridge:
   _num_workers = 10
   _target = 2000
   _overlap = 100
+  _batched = True
   # How many samples of 0s of silence for pauses between mels. 
   _silence_spaces = 5
   _add_silences = False
  
-  def __init__(self, load_immediately=True):
+  def __init__(self, load_immediately=True, target= None, overlap = None, batched = None):
     self._weights_fpath = str(Path(__file__).parent.resolve().joinpath(self._weights_fpath))
     if load_immediately:
       load_model(self._weights_fpath)
+    
+    if target is not None:
+      self._target = target
+    
+    if overlap is not None:
+      self._overlap = overlap
+    
+    if batched is not None:
+      self._batched = batched
   
   def sv2tts(self,mels):
     wavs = []
@@ -49,7 +59,7 @@ class SV2TTSBridge:
     combined_mels = np.hstack(separated_mels)
 
     # Execute inference. 
-    waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap, normalize = False)
+    waveform = infer_waveform(combined_mels, target=self._target, overlap=self._overlap, normalize = False, batched=self._batched)
     wavs.append(waveform)
 
     return wavs
