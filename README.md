@@ -10,8 +10,6 @@ For more information, please see [Tales of Skits](http://talesofskits.com/).
 
 [![Tales of Skits Website](https://i.imgur.com/9HlmT9X.png "Tales of Skits Website")](http://talesofskits.com/)
 
-[![Tales of Skits Website](https://i.imgur.com/A7HdMCQ.png "Tales of Skits Website")](http://talesofskits.com/)
-
 Contains three independently trained components:
 
 1. Speaker Encoder - Provides a representation of speaker qualities having been trained on a separate Speaker Verification task. This fixed-dimensional vector is passed to (2).
@@ -27,6 +25,10 @@ VoxCeleb (1 and 2): https://www.robots.ox.ac.uk/~vgg/data/voxceleb/
 LibriSpeech: https://www.openslr.org/12/
 
 VCTK: https://datashare.ed.ac.uk/handle/10283/2950
+
+Tales Skits Dataset
+
+[![Tales of Skits Website](https://i.imgur.com/A7HdMCQ.png "Tales of Skits Website")](http://talesofskits.com/)
 
 ---
 
