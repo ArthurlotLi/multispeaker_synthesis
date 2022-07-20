@@ -26,7 +26,7 @@ LibriSpeech: https://www.openslr.org/12/
 
 VCTK: https://datashare.ed.ac.uk/handle/10283/2950
 
-Tales Skits Dataset
+Tales Skits Dataset ([Tales of Skits](http://talesofskits.com/)).
 
 [![Tales of Skits Website](https://i.imgur.com/A7HdMCQ.png "Tales of Skits Website")](http://talesofskits.com/)
 
