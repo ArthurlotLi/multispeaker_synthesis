@@ -8,9 +8,9 @@ Models augmented with data from Tales Skits dataset generation algorithms and Ta
 
 For more information, please see [Tales of Skits](http://talesofskits.com/).
 
-[![Tales of Skits Website](https://i.imgur.com/A7HdMCQ.png "Tales of Skits Website")](http://talesofskits.com/)
-
 [![Tales of Skits Website](https://i.imgur.com/9HlmT9X.png "Tales of Skits Website")](http://talesofskits.com/)
+
+[![Tales of Skits Website](https://i.imgur.com/A7HdMCQ.png "Tales of Skits Website")](http://talesofskits.com/)
 
 Contains three independently trained components:
 
